@@ -1,6 +1,9 @@
+#include <stdlib.h>
+
 #include "const.h"
 #include "transplant.h"
 #include "debug.h"
+#include "string_helpers.h"
 
 #ifdef _STRING_H
 #error "Do not #include <string.h>. You will get a ZERO."
@@ -59,7 +62,7 @@ static char *record_type_name(int i) {
  * @details  This function copies its null-terminated argument string into
  * path_buf, including its terminating null byte.
  * The function fails if the argument string, including the terminating
- * null byte, is longer than the size of path_buf.  The path_length variable 
+ * null byte, is longer than the size of path_buf.  The path_length variable
  * is set to the length of the string in path_buf, not including the terminating
  * null byte.
  *
@@ -68,6 +71,17 @@ static char *record_type_name(int i) {
  */
 int path_init(char *name) {
     // To be implemented.
+    // TODO
+    // 1. copy string into path_buf (including null terminator)
+    // 2. fail if:
+    //      a. argument string including terminating byte is longer than the
+    //       size of path_buf
+    // 3. path_length is set to the length of the string in path_buf. Not
+    //  including the null terminator byte
+
+    // return 0 on success, -1 on error
+
+
     return -1;
 }
 
@@ -79,7 +93,7 @@ int path_init(char *name) {
  * The length of the new string, including the terminating null byte, must be
  * no more than the size of path_buf.  The variable path_length is updated to
  * remain consistent with the length of the string in path_buf.
- * 
+ *
  * @param  The string to be appended to the path in path_buf.  The string must
  * not contain any occurrences of the path separator character '/'.
  * @return 0 in case of success, -1 otherwise.
@@ -240,6 +254,122 @@ int deserialize() {
  */
 int validargs(int argc, char **argv)
 {
-    // To be implemented.
+    // TODO unset other bits too instead of just |= (appends/switches just 1 bit)
+    // int to character mappings
+    // 45: '-'
+    // 104: 'h'
+    // 115: 's'
+    // 100: 'd'
+    // 99: 'c'
+    // 112: 'p'
+
+    debug("this is argc %d", argc);
+
+    global_options = 0x0;
+
+    if (argc == 1) {
+        return EXIT_FAILURE;
+    }
+
+    for (int i = 0; i < argc; ++i) {
+        if (*(*(argv + i)) == 45) {
+            // -h
+            if (*((*(argv + i)) + 1) == 104) {
+                if (*((*(argv + i)) + 2) == 0) {
+                    // -h must be the first argument after program name
+                    if (i == 1) {
+                        debug("-h flag found!");
+                        global_options |= 1 << 0;
+                        return EXIT_SUCCESS;
+                    } else {
+                        return EXIT_FAILURE;
+                    }
+                }
+            }
+
+            // -s
+            if (*((*(argv + i)) + 1) == 115) {
+                if (*((*(argv + i)) + 2) == 0) {
+                    debug("-s flag found!");
+                    global_options |= 1 << 1;
+                }
+            }
+
+            // -d
+            if (*((*(argv + i)) + 1) == 100) {
+                if (*((*(argv + i)) + 2) == 0) {
+                    debug("-d flag found!");
+                    global_options |= 1 << 2;
+                }
+            }
+
+            // -c but only after -hsd, technically only valid after -d
+            if (*((*(argv + i)) + 1) == 99) {
+                if (*((*(argv + i)) + 2) == 0) {
+                    debug("-c flag found!");
+                    if (global_options & (1 << 2)) {
+                        debug("-d was previously found, so -c can be set.");
+                        global_options |= 1 << 3;
+                    } else {
+                        debug("-d wasn't previously found, so -c cannot be set.");
+                        return EXIT_FAILURE;
+                    }
+                }
+            }
+
+            // -p but only after -hsd and with a parameter following it, can apply for -s or -d
+            if (*((*(argv + i)) + 1) == 112) {
+                if (*((*(argv + i)) + 2) == 0) {
+                    debug("-p flag found!");
+                    if (global_options & (1 << 1) || global_options & (1 << 2)) {
+                        debug("-d|-s was previously found, so -p can be set.");
+                        //name_buf "name path";
+                        if (i + 1 < argc) {
+                            // since -c can appear after -p, make sure that the next direct paramter isn't exactly '-c'
+                            if (string_length(*(argv + i + 1)) == 2) {
+                                if (*((*(argv + i + 1)) + 0) == 45) {
+                                    if (*((*(argv + i + 1)) + 1) == 99) {
+                                        debug("next parameter is -c, not a real path!!!");
+                                        return EXIT_FAILURE;
+                                    }
+                                }
+                            }
+
+                            // set the name_buf buffer to the contents of the parameter after -p
+                            for (int j = 0; j < string_length(*(argv + i + 1)); ++j) {
+                                *(name_buf + j) = *((*(argv + i + 1)) + j);
+                            }
+
+                            debug("contents of name_buf set to: %s", name_buf);
+                        } else {
+                            debug("-p doesn't have anything after it");
+                            return EXIT_FAILURE;
+                        }
+                    } else {
+                        debug("-d|-s wasn't previously found, so -p cannot be set.");
+                        return EXIT_FAILURE;
+                    }
+                }
+            }
+
+            debug("this is the char-code after '-': %d", *((*(argv + i) + 1)) );
+        }
+        debug("this is the contents of the argument %s", *(argv + i));
+    }
+
+    if ((global_options & (1 << 1)) || (global_options & (1 << 2))) {
+        debug("we got either -s or -d! (good so far!)");
+        if ((global_options & (1 << 1)) && (global_options & (1 << 2))) {
+            debug("both -s and -d were set! (bad!)");
+            return EXIT_FAILURE;
+        } else {
+            debug("only 1 set, good!");
+            return EXIT_SUCCESS;
+        }
+    } else {
+        debug("neither -s nor -d was specified");
+        return EXIT_FAILURE;
+    }
+
     return -1;
 }

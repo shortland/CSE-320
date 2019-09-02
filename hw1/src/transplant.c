@@ -336,9 +336,12 @@ int validargs(int argc, char **argv)
                             }
 
                             // set the name_buf buffer to the contents of the parameter after -p
-                            for (int j = 0; j < string_length(*(argv + i + 1)); ++j) {
+                            int j;
+                            for (j = 0; j < string_length(*(argv + i + 1)); ++j) {
                                 *(name_buf + j) = *((*(argv + i + 1)) + j);
                             }
+                            // set last to null terminator just in-case...
+                            *(name_buf + j) = '\0';
 
                             debug("contents of name_buf set to: %s", name_buf);
                         } else {

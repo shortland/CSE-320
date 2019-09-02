@@ -3,6 +3,7 @@
 
 #include "const.h"
 #include "debug.h"
+#include "string_helpers.h"
 
 #ifdef _STRING_H
 #error "Do not #include <string.h>. You will get a ZERO."
@@ -34,13 +35,13 @@ int main(int argc, char **argv)
         debug("-s, serialization mode");
     }
 
-    // if (global_options & 4) {
-    //     debug("-d, deserialization mode");
-    // }
+    if (global_options & (1 << 2)) {
+        debug("-d, deserialization mode");
+    }
 
-    // if (global_options & 2) {
-    //     debug("-s, serialization mode");
-    // }
+    if (string_length(name_buf) > 0) {
+        debug("name_buf, %s", name_buf);
+    }
 
     return EXIT_SUCCESS;
 }

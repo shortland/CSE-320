@@ -268,7 +268,7 @@ int validargs(int argc, char **argv)
     global_options = 0x0;
 
     if (argc == 1) {
-        return EXIT_FAILURE;
+        return -1;
     }
 
     for (int i = 0; i < argc; ++i) {
@@ -280,9 +280,9 @@ int validargs(int argc, char **argv)
                     if (i == 1) {
                         debug("-h flag found!");
                         global_options |= 1 << 0;
-                        return EXIT_SUCCESS;
+                        return 0;
                     } else {
-                        return EXIT_FAILURE;
+                        return -1;
                     }
                 }
             }
@@ -312,7 +312,7 @@ int validargs(int argc, char **argv)
                         global_options |= 1 << 3;
                     } else {
                         debug("-d wasn't previously found, so -c cannot be set.");
-                        return EXIT_FAILURE;
+                        return -1;
                     }
                 }
             }
@@ -330,7 +330,7 @@ int validargs(int argc, char **argv)
                                 if (*((*(argv + i + 1)) + 0) == 45) {
                                     if (*((*(argv + i + 1)) + 1) == 99) {
                                         debug("next parameter is -c, not a real path!!!");
-                                        return EXIT_FAILURE;
+                                        return -1;
                                     }
                                 }
                             }
@@ -346,11 +346,11 @@ int validargs(int argc, char **argv)
                             debug("contents of name_buf set to: %s", name_buf);
                         } else {
                             debug("-p doesn't have anything after it");
-                            return EXIT_FAILURE;
+                            return -1;
                         }
                     } else {
                         debug("-d|-s wasn't previously found, so -p cannot be set.");
-                        return EXIT_FAILURE;
+                        return -1;
                     }
                 }
             }
@@ -364,14 +364,14 @@ int validargs(int argc, char **argv)
         debug("we got either -s or -d! (good so far!)");
         if ((global_options & (1 << 1)) && (global_options & (1 << 2))) {
             debug("both -s and -d were set! (bad!)");
-            return EXIT_FAILURE;
+            return -1;
         } else {
             debug("only 1 set, good!");
-            return EXIT_SUCCESS;
+            return 0;
         }
     } else {
         debug("neither -s nor -d was specified");
-        return EXIT_FAILURE;
+        return -1;
     }
 
     return -1;

@@ -20,7 +20,7 @@
 int main(int argc, char **argv)
 {
     int ret;
-    if (validargs(argc, argv)) {
+    if (validargs(argc, argv) == -1) {
         debug("validargs returned error");
         USAGE(*argv, EXIT_FAILURE);
     }

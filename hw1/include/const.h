@@ -92,7 +92,7 @@ int validargs(int argc, char **argv);
  * @details  This function copies its null-terminated argument string into
  * path_buf, including its terminating null byte.
  * The function fails if the argument string, including the terminating
- * null byte, is longer than the size of path_buf.  The path_length variable 
+ * null byte, is longer than the size of path_buf.  The path_length variable
  * is set to the length of the string in path_buf, not including the terminating
  * null byte.
  *
@@ -109,7 +109,7 @@ int path_init(char *name);
  * The length of the new string, including the terminating null byte, must be
  * no more than the size of path_buf.  The variable path_length is updated to
  * remain consistent with the length of the string in path_buf.
- * 
+ *
  * @param  The string to be appended to the path in path_buf.  The string must
  * not contain any occurrences of the path separator character '/'.
  * @return 0 in case of success, -1 otherwise.

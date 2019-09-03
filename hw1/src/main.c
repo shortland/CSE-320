@@ -40,8 +40,32 @@ int main(int argc, char **argv)
     }
 
     if (string_length(name_buf) > 0) {
-        debug("name_buf, %s", name_buf);
+        debug("name_buf set to: %s", name_buf);
     }
+
+    /* begin serialization/deserialization */
+    //return begin_transplant();
+
+    // test path_init()
+    if (path_init("hello/world") == -1) {
+        debug("path_init() error");
+        return EXIT_FAILURE;
+    }
+
+    // test path_push();
+    debug("current path_buf: %s", path_buf);
+    if (path_push("someDirectory") == -1) {
+        debug("path_push() error");
+        return EXIT_FAILURE;
+    }
+    debug("after appending path_buf: %s, and new path_length is %d", path_buf, path_length);
+
+    debug("old path_buf is: %s", path_buf);
+    if (path_pop() == -1) {
+        debug("path_pop() error");
+        return EXIT_FAILURE;
+    }
+    debug("new path_buf is: %s", path_buf);
 
     return EXIT_SUCCESS;
 }

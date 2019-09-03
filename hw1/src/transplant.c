@@ -70,19 +70,22 @@ static char *record_type_name(int i) {
  * @return 0 on success, -1 in case of error
  */
 int path_init(char *name) {
-    // To be implemented.
-    // TODO
-    // 1. copy string into path_buf (including null terminator)
-    // 2. fail if:
-    //      a. argument string including terminating byte is longer than the
-    //       size of path_buf
-    // 3. path_length is set to the length of the string in path_buf. Not
-    //  including the null terminator byte
-
     // return 0 on success, -1 on error
+    if (string_length(name) + 1 > sizeof(path_buf)) {
+        debug("arg string length and null byte (%d) is greater than size of path_buf (%ld)", string_length(name) + 1, sizeof(path_buf));
+        return -1;
+    }
 
+    // copy over
+    copy_string_and_null("this is a longer word than before!", path_buf);
+    copy_string_and_null(name, path_buf);
 
-    return -1;
+    // set pathlength to length of path_buf, NOT including null terminator
+    path_length = string_length(name);
+
+    debug("path_buf is actually: '%s'; and path_length is: %d", path_buf, path_length);
+
+    return 0;
 }
 
 /*
@@ -99,8 +102,25 @@ int path_init(char *name) {
  * @return 0 in case of success, -1 otherwise.
  */
 int path_push(char *name) {
-    // To be implemented.
-    return -1;
+    if (string_contains_char(name, '/') == 0) {
+        debug("string contains needle, error.");
+        return -1;
+    }
+
+    //debug("cannot exceed size of path_buf %d", string_length(name) + string_length(path_buf) + 1 + 1);
+    if (string_length(name) + string_length(path_buf) + 1 + 1 > sizeof(path_buf)) {
+        debug("new path_buf would be too large... error");
+        return -1;
+    }
+
+    append_string_to_existing(path_buf, "/");
+    append_string_to_existing(path_buf, name);
+    debug("new path_buf after append is: %s", path_buf);
+
+    // update path_length
+    path_length = string_length(path_buf);
+
+    return 0;
 }
 
 /*
@@ -116,8 +136,23 @@ int path_push(char *name) {
  * @return 0 in case of success, -1 otherwise.
  */
 int path_pop() {
-    // To be implemented.
-    return -1;
+    if (string_length(path_buf) == 0 || path_length == 0) {
+        debug("nothing to pop from path, error!");
+        return -1;
+    }
+
+    // if no '/' in path_buf; set path_buf to nothing
+    if (position_of_char_from_suffix(path_buf, '/') == -1) {
+        copy_string_and_null("", path_buf);
+        path_length = 0;
+        debug("path_buf set to nothing: %s", path_buf);
+        return 0;
+    }
+
+    remove_suffix_at_char(path_buf, '/');
+    path_length = string_length(path_buf);
+
+    return 0;
 }
 
 /*

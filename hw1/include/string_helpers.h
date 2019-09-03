@@ -3,4 +3,16 @@
 
 int string_length(char *string);
 
+void copy_string_and_null(char *source, char *dest);
+
+void copy_string_no_null(char *source, char *dest);
+
+int string_contains_char(char *string, char needle);
+
+void append_string_to_existing(char *existing, char *toAppend);
+
+void remove_suffix_at_char(char *source, char a);
+
+int position_of_char_from_suffix(char *source, char a);
+
 #endif

@@ -3,7 +3,6 @@
 #include <ctype.h>
 #include <sgtty.h>
 #include <signal.h>
-#include <curses.h>
 #include <pwd.h>
 
 #include "sys5.h"

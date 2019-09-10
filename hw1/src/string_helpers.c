@@ -49,7 +49,7 @@ int string_contains_char(char *string, char needle) {
         c++;
     }
 
-    debug("string does not contain needle");
+    debug("string: '%s' does not contain needle: '%c'", string, needle);
 
     return -1;
 }

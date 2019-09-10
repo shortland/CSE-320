@@ -4,6 +4,9 @@
 #include "transplant.h"
 #include "debug.h"
 #include "string_helpers.h"
+#include "stdio.h"
+#include "unistd.h"
+#include "serialize_helpers.h"
 
 #ifdef _STRING_H
 #error "Do not #include <string.h>. You will get a ZERO."
@@ -151,7 +154,6 @@ int path_pop() {
 
     remove_suffix_at_char(path_buf, '/');
     path_length = string_length(path_buf);
-
     return 0;
 }
 
@@ -174,6 +176,15 @@ int path_pop() {
  */
 int deserialize_directory(int depth) {
     // To be implemented.
+    // path_buf has name of an existing directory
+    // reads a sequence of DIRECTORY_ENTRY records (START_OF_DIRECTORY and END_OF_DIRECTORY)
+    /*
+     * [START_OF_DIRECTORY]
+     *    DIRECTORY_ENTRY
+     *    DIRECTORY_ENTRY
+     * [END_OF_DIRECTORY]
+     *
+     */
     return -1;
 }
 
@@ -194,7 +205,16 @@ int deserialize_directory(int depth) {
  * the FILE_DATA record from the standard input or while re-creating the
  * deserialized file.
  */
-int deserialize_file(int depth);
+int deserialize_file(int depth) {
+    // assumes path_buf contains name of file to be deserialized
+    // File must not already exist
+    //   unless clobber bit is set in the global_options variable
+    // reads from STDIN a single FILE_DATA record
+    // recreates the file
+
+    // depth is supposed to match the depth field in the FILE_DATA record
+    return -1;
+}
 
 /*
  * @brief  Serialize the contents of a directory as a sequence of records written
@@ -233,6 +253,25 @@ int serialize_directory(int depth) {
  */
 int serialize_file(int depth, off_t size) {
     // To be implemented.
+
+    // read contents of file named `path_buf`, it has `size` bytes of data.
+    // serialize its contents
+    // set the depth field to `depth`
+
+    FILE *f = fopen(path_buf, "r");
+    char c;
+    int i;
+    for (i = 0; i < size; i++) {
+        c = fgetc(f);
+        putchar(c);
+    }
+    fclose(f);
+    fflush(stdout);
+
+    if (i == size) {
+        return 0;
+    }
+
     return -1;
 }
 
@@ -250,6 +289,11 @@ int serialize_file(int depth, off_t size) {
  */
 int serialize() {
     // To be implemented.
+    write_record_start();
+
+    //serialize_file(0, 6);
+
+    write_record_end();
     return -1;
 }
 

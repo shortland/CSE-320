@@ -72,6 +72,11 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     debug("new path_buf is: %s", path_buf);
+    if (path_pop() == -1) {
+        error("path_pop() error");
+        return EXIT_FAILURE;
+    }
+    debug("new path_buf is: %s", path_buf);
 
     serialize();
 

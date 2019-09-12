@@ -99,3 +99,17 @@ int position_of_char_from_suffix(char *source, char a) {
 
     return -1;
 }
+
+int string_equals(char *first, char *second) {
+    if (string_length(first) != string_length(second)) {
+        return -1;
+    }
+
+    for (int i = 0; i < string_length(first); i++) {
+        if (*(first + i) != *(second + i)) {
+            return -1;
+        }
+    }
+
+    return 0;
+}

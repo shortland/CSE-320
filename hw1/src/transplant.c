@@ -1,13 +1,14 @@
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include "const.h"
 #include "transplant.h"
 #include "debug.h"
 #include "string_helpers.h"
-#include "stdio.h"
-#include "unistd.h"
 #include "serialize_helpers.h"
-#include <sys/stat.h>
 
 #ifdef _STRING_H
 #error "Do not #include <string.h>. You will get a ZERO."
@@ -157,6 +158,7 @@ int path_pop() {
 
     remove_suffix_at_char(path_buf, '/');
     path_length = string_length(path_buf);
+
     return 0;
 }
 
@@ -294,23 +296,56 @@ int serialize_file(int depth, off_t size) {
  * @return 0 if serialization completes without error, -1 if an error occurs.
  */
 int serialize() {
-    // To be implemented.
+    debug("entered serialize function");
     write_record_start();
+    debug("finished record start");
+    write_record_dir_start(1);
+    debug("finished base dir start");
 
-    // get metadata about current file in path_buf
-    // change path_buf every file we recurse through
-    if (stat(path_buf, &stat_buf) == -1) return -1;
-    if (S_ISREG(stat_buf.st_mode)) {
-        // it's a file
-    } else if (S_ISDIR(stat_buf.st_mode)) {
-        // it's a directory
-    } else {
-        // it's something else we don't care about.
-        // return error?
+    // open the initial directory
+    DIR *dir = opendir(path_buf);
+    struct dirent *de;
+    if (dir == NULL) return EXIT_FAILURE;
+    debug("finished getting first dir pointer");
+
+    while ((de = readdir(dir)) != NULL) {
+        if ((string_equals(de->d_name, ".") == 0) || (string_equals(de->d_name, "..") == 0)) {
+            continue;
+        }
+        // push the read file/dir into path_buf
+        if (path_push(de->d_name) == -1) {
+            return EXIT_FAILURE;
+        }
+        // get metadata about current file in path_buf
+        // change path_buf every file we recurse through
+        if (stat(path_buf, &stat_buf) == -1) return -1;
+        if (S_ISREG(stat_buf.st_mode)) {
+            write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, 1, de->d_name);
+            // write the file-data record
+        } else if (S_ISDIR(stat_buf.st_mode)) {
+            write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, 1, de->d_name);
+            // TODO:
+            // iterate through the subdirectory (also make the directory start entry/end)
+            // implies making this a recursive function rather than just in line in this function.
+        } else {
+            // it's something else we don't care about.
+            // return error?
+        }
+        // create an dir entry
+
+        // pop the pushed file/dir
+        if (path_pop() == -1) {
+            return EXIT_FAILURE;
+        }
     }
+
+    closedir(dir);
+
+
 
     //serialize_file(0, 6);
 
+    write_record_dir_end(1);
     write_record_end();
     return -1;
 }

@@ -84,13 +84,25 @@ int write_record_dir_entry(mode_t mode, off_t sizeInfo, uint32_t depth, char *na
     return 0;
 }
 
-int write_record_dir_start() {
-    // TODO
+/**
+ * START_OF_DIRECTORY
+ */
+int write_record_dir_start(uint32_t depth) {
+    if (write_magic_bytes() == -1) return -1;
+    if (write_type(START_OF_DIRECTORY) == -1) return -1;
+    if (write_depth((uint32_t) depth) == -1) return -1;
+    if (write_size((uint64_t) HEADER_SIZE) == -1) return -1;
     return 0;
 }
 
-int write_record_dir_end() {
-    // TODO
+/**
+ * END_OF_DIRECTORY
+ */
+int write_record_dir_end(uint32_t depth) {
+    if (write_magic_bytes() == -1) return -1;
+    if (write_type(END_OF_DIRECTORY) == -1) return -1;
+    if (write_depth((uint32_t) depth) == -1) return -1;
+    if (write_size((uint64_t) HEADER_SIZE) == -1) return -1;
     return 0;
 }
 

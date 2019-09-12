@@ -15,4 +15,6 @@ void remove_suffix_at_char(char *source, char a);
 
 int position_of_char_from_suffix(char *source, char a);
 
+int string_equals(char *first, char *second);
+
 #endif

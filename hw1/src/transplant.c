@@ -7,6 +7,7 @@
 #include "stdio.h"
 #include "unistd.h"
 #include "serialize_helpers.h"
+#include <sys/stat.h>
 
 #ifdef _STRING_H
 #error "Do not #include <string.h>. You will get a ZERO."
@@ -19,6 +20,8 @@
 #ifdef _CTYPE_H
 #error "Do not #include <ctype.h>. You will get a ZERO."
 #endif
+
+struct stat stat_buf;
 
 /*
  * You may modify this file and/or move the functions contained here
@@ -254,6 +257,9 @@ int serialize_directory(int depth) {
 int serialize_file(int depth, off_t size) {
     // To be implemented.
 
+    // dir entry record
+    // file data record
+
     // read contents of file named `path_buf`, it has `size` bytes of data.
     // serialize its contents
     // set the depth field to `depth`
@@ -290,6 +296,18 @@ int serialize_file(int depth, off_t size) {
 int serialize() {
     // To be implemented.
     write_record_start();
+
+    // get metadata about current file in path_buf
+    // change path_buf every file we recurse through
+    if (stat(path_buf, &stat_buf) == -1) return -1;
+    if (S_ISREG(stat_buf.st_mode)) {
+        // it's a file
+    } else if (S_ISDIR(stat_buf.st_mode)) {
+        // it's a directory
+    } else {
+        // it's something else we don't care about.
+        // return error?
+    }
 
     //serialize_file(0, 6);
 

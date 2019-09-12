@@ -3,6 +3,8 @@
 #include "stdio.h"
 #include "unistd.h"
 #include "stdint.h"
+#include "string_helpers.h"
+#include <sys/stat.h>
 
 int write_magic_bytes() {
     if (putchar(MAGIC0) == EOF) return -1;
@@ -16,46 +18,26 @@ int write_type(char type) {
     return 0;
 }
 
-void write_int32(uint32_t bignum) {
-    int byte_a = *(((unsigned char *)(&bignum)) + 3);
-    int byte_b = *(((unsigned char *)(&bignum)) + 2);
-    int byte_c = *(((unsigned char *)(&bignum)) + 1);
-    int byte_d = *(((unsigned char *)(&bignum)) + 0);
-    putchar(byte_a);
-    putchar(byte_b);
-    putchar(byte_c);
-    putchar(byte_d);
+int write_num_bytes(int numBytes, uint64_t bignum) {
+    for (int i = 0; i < numBytes; i++) {
+        int byte = *(((unsigned char *)(&bignum)) + (numBytes - 1 - i));
+        if (putchar(byte) == EOF) return -1;
+    }
+    return 0;
 }
 
 int write_depth(uint32_t depth) {
-    write_int32(depth);
-    return 0;
-}
-
-void write_int64(uint64_t bignum) {
-    int byte_a = *(((unsigned char *)(&bignum)) + 7);
-    int byte_b = *(((unsigned char *)(&bignum)) + 6);
-    int byte_c = *(((unsigned char *)(&bignum)) + 5);
-    int byte_d = *(((unsigned char *)(&bignum)) + 4);
-    int byte_e = *(((unsigned char *)(&bignum)) + 3);
-    int byte_f = *(((unsigned char *)(&bignum)) + 2);
-    int byte_g = *(((unsigned char *)(&bignum)) + 1);
-    int byte_h = *(((unsigned char *)(&bignum)) + 0);
-    putchar(byte_a);
-    putchar(byte_b);
-    putchar(byte_c);
-    putchar(byte_d);
-    putchar(byte_e);
-    putchar(byte_f);
-    putchar(byte_g);
-    putchar(byte_h);
+    return write_num_bytes(4, depth);
 }
 
 int write_size(uint64_t size) {
-    write_int64(size);
-    return 0;
+    return write_num_bytes(8, size);
 }
 
+/*
+ * START_OF_TRANSMISSION = 0
+ *
+ */
 int write_record_start() {
     if (write_magic_bytes() == -1) return -1;
     if (write_type(START_OF_TRANSMISSION) == -1) return -1;
@@ -64,11 +46,41 @@ int write_record_start() {
     return 0;
 }
 
+/*
+ * END_OF_TRANSMISSION = 1
+ *
+ */
 int write_record_end() {
     if (write_magic_bytes() == -1) return -1;
     if (write_type(END_OF_TRANSMISSION) == -1) return -1;
     if (write_depth((uint32_t) 0) == -1) return -1;
     if (write_size((uint64_t) HEADER_SIZE) == -1) return -1;
+    return 0;
+}
+
+/*
+ * DIRECTORY_ENTRY = 4
+ *
+ */
+int write_record_dir_entry(mode_t mode, off_t sizeInfo, uint32_t depth, char *name) {
+    // Entry name ? bytes
+    int amt = string_length(name);
+
+    // Header; 16 bytes
+    amt += (16 + 12);
+    if (write_magic_bytes() == -1) return -1;
+    if (write_type(DIRECTORY_ENTRY) == -1) return -1;
+    if (write_depth((uint32_t) depth) == -1) return -1;
+    if (write_size((uint64_t) amt) == -1) return -1;
+
+    // Metadata; 12 bytes
+    if (write_num_bytes(4, mode) == -1) return -1;
+    if (write_num_bytes(8, sizeInfo) == -1) return -1;
+
+    for (int i = 0; i < string_length(name); i++) {
+        write_num_bytes(1, *(name + i));
+    }
+
     return 0;
 }
 
@@ -78,11 +90,6 @@ int write_record_dir_start() {
 }
 
 int write_record_dir_end() {
-    // TODO
-    return 0;
-}
-
-int write_record_dir_entry() {
     // TODO
     return 0;
 }

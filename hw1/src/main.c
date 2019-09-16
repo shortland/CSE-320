@@ -17,9 +17,7 @@
 #error "Do not #include <ctype.h>. You will get a ZERO."
 #endif
 
-int main(int argc, char **argv)
-{
-    int ret;
+int main(int argc, char **argv) {
     if (validargs(argc, argv) == -1) {
         debug("validargs returned error");
         USAGE(*argv, EXIT_FAILURE);
@@ -36,6 +34,7 @@ int main(int argc, char **argv)
      */
     if (string_length(name_buf) == 0) {
         debug("using cwd, no name_buf available");
+
         if (path_init("./") == -1) {
             error("path_init() error");
             return EXIT_FAILURE;
@@ -50,6 +49,7 @@ int main(int argc, char **argv)
      */
     if (global_options & (1 << 1)) {
         debug("-s, serialization mode");
+
         if (serialize() == -1) {
             error("serialize failed");
             return EXIT_FAILURE;

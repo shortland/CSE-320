@@ -15,7 +15,6 @@ void copy_string_and_null(char *source, char *dest) {
 
     while (*(source + c) != '\0') {
         *(dest + c) = *(source + c);
-
         c++;
     }
 
@@ -30,7 +29,6 @@ void copy_string_no_null(char *source, char *dest) {
 
     while (*(source + c) != '\0') {
         *(dest + c) = *(source + c);
-
         c++;
     }
 

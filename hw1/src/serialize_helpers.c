@@ -22,8 +22,9 @@ int write_type(char type) {
 }
 
 int write_num_bytes(int numBytes, uint64_t bignum) {
+    int byte;
     for (int i = 0; i < numBytes; i++) {
-        int byte = *(((unsigned char *)(&bignum)) + (numBytes - 1 - i));
+        byte = *(((unsigned char *)(&bignum)) + (numBytes - 1 - i));
         if (putchar(byte) == EOF) return -1;
     }
     return 0;
@@ -37,7 +38,7 @@ int write_size(uint64_t size) {
     return write_num_bytes(8, size);
 }
 
-/*
+/**
  * START_OF_TRANSMISSION = 0
  *
  */
@@ -49,7 +50,7 @@ int write_record_start() {
     return 0;
 }
 
-/*
+/**
  * END_OF_TRANSMISSION = 1
  *
  */
@@ -61,7 +62,7 @@ int write_record_end() {
     return 0;
 }
 
-/*
+/**
  * DIRECTORY_ENTRY = 4
  *
  */
@@ -112,6 +113,7 @@ int write_record_dir_end(uint32_t depth) {
 /**
  * FILE_DATA
  * [Header Only]
+ * @return number of bytes written
  */
 int write_record_file_data(uint32_t depth, char *filepath, off_t size) {
     if (write_magic_bytes() == -1) return -1;
@@ -121,34 +123,12 @@ int write_record_file_data(uint32_t depth, char *filepath, off_t size) {
 
     FILE *f = fopen(filepath, "r");
     if (f == NULL) return -1;
+
     int i;
     for (i = 0; i < size; i++) {
         putchar(fgetc(f));
     }
     fclose(f);
-    fflush(stdout);
 
     return i;
 }
-
-// int recursive_serializer(char *dirpath, uint32_t depth) {
-//     if (write_record_dir_start(depth) == -1) return -1;
-
-//     DIR *dir = opendir(dirpath);
-//     struct dirent *de;
-//     if (dir == NULL) return -1;
-//     debug("finished getting first dir pointer");
-//     while ((de = readdir(dir)) != NULL) {
-//         if ((string_equals(de->d_name, ".") == 0) || (string_equals(de->d_name, "..") == 0)) {
-//             continue;
-//         }
-//         // push the read file/dir into path_buf
-//         if (path_push(de->d_name) == -1) {
-//             return EXIT_FAILURE;
-//         }
-//     }
-//     closedir(dir);
-
-//     if (write_record_dir_end(depth) == -1) return -1;
-//     return 0;
-// }

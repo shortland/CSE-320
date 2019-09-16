@@ -22,8 +22,6 @@
 #error "Do not #include <ctype.h>. You will get a ZERO."
 #endif
 
-struct stat stat_buf;
-
 /*
  * You may modify this file and/or move the functions contained here
  * to other source files (except for main.c) as you wish.
@@ -243,46 +241,53 @@ int serialize_directory(int depth) {
         debug("write record dir start error!");
         return -1;
     }
-    // open the initial directory
-    DIR *dir = opendir(path_buf);
+
     struct dirent *de;
+    DIR *dir = opendir(path_buf);
     if (dir == NULL) {
         error("error dir was null!");
         return -1;
     }
-    debug("finished getting first dir pointer");
+
+    /**
+     * For holding metadata/chmod
+     */
+    struct stat stat_buf;
 
     while ((de = readdir(dir)) != NULL) {
         if ((string_equals(de->d_name, ".") == 0) || (string_equals(de->d_name, "..") == 0)) {
             continue;
         }
+
         // push the read file/dir into path_buf
         if (path_push(de->d_name) == -1) {
             error("unable to append name to path");
             return -1;
         }
+
         // get metadata about current file in path_buf
         // change path_buf every file we recurse through
         if (stat(path_buf, &stat_buf) == -1) {
             error("unable to get metadata about current file in path_buf");
             return -1;
         }
+
         if (S_ISREG(stat_buf.st_mode)) {
             if (write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, depth, de->d_name) == -1) {
                 error("unable to write dir entry");
                 return -1;
             }
-            //write_record_file_data(path_buf);
+
             if (serialize_file(depth, stat_buf.st_size) == -1) {
                 error("unable to serialize file");
                 return -1;
             }
-            // write the file-data record
         } else if (S_ISDIR(stat_buf.st_mode)) {
             if (write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, depth, de->d_name) == -1) {
                 error("unable to write record dir entry");
                 return -1;
             }
+
             if (serialize_directory(depth + 1) == -1) {
                 error("unable to recursively execute serialize_directory()");
                 return -1;
@@ -291,15 +296,15 @@ int serialize_directory(int depth) {
             error("unknown file type");
             return -1;
         }
-        // create an dir entry
 
-        // pop the pushed file/dir
         if (path_pop() == -1) {
             error("unable to pop from path");
             return -1;
         }
     }
+
     closedir(dir);
+
     if (write_record_dir_end(depth) == -1) {
         error("write record dir end error");
         return -1;
@@ -341,6 +346,7 @@ int serialize_file(int depth, off_t size) {
  */
 int serialize() {
     debug("entered serialize function");
+
     if (write_record_start() == -1) {
         error("unable to write record start");
         return -1;
@@ -393,8 +399,7 @@ int deserialize() {
  * @modifies global variable "global_options" to contain a bitmap representing
  * the selected options.
  */
-int validargs(int argc, char **argv)
-{
+int validargs(int argc, char **argv) {
     // TODO unset other bits too instead of just |= (appends/switches just 1 bit)
     // int to character mappings
     // 45: '-'
@@ -449,6 +454,7 @@ int validargs(int argc, char **argv)
             if (*((*(argv + i)) + 1) == 99) {
                 if (*((*(argv + i)) + 2) == 0) {
                     debug("-c flag found!");
+
                     if (global_options & (1 << 2)) {
                         debug("-d was previously found, so -c can be set.");
                         global_options |= 1 << 3;
@@ -462,9 +468,13 @@ int validargs(int argc, char **argv)
             // -p but only after -hsd and with a parameter following it, can apply for -s or -d
             if (*((*(argv + i)) + 1) == 112) {
                 if (*((*(argv + i)) + 2) == 0) {
+
                     debug("-p flag found!");
+
                     if (global_options & (1 << 1) || global_options & (1 << 2)) {
+
                         debug("-d|-s was previously found, so -p can be set.");
+
                         if (i + 1 < argc) {
                             // since -c can appear after -p, make sure that the next direct paramter isn't exactly '-c'
                             if (string_length(*(argv + i + 1)) == 2) {
@@ -475,13 +485,16 @@ int validargs(int argc, char **argv)
                                     }
                                 }
                             }
+
                             // set the name_buf buffer to the contents of the parameter after -p
                             int j;
                             for (j = 0; j < string_length(*(argv + i + 1)); ++j) {
                                 *(name_buf + j) = *((*(argv + i + 1)) + j);
                             }
+
                             // set last to null terminator just in-case...
                             *(name_buf + j) = '\0';
+
                             debug("contents of name_buf set to: %s", name_buf);
                         } else {
                             error("-p doesn't have anything after it");
@@ -493,13 +506,16 @@ int validargs(int argc, char **argv)
                     }
                 }
             }
+
             debug("this is the char-code after '-': %d", *((*(argv + i) + 1)) );
         }
+
         debug("this is the contents of the argument %s", *(argv + i));
     }
 
     if ((global_options & (1 << 1)) || (global_options & (1 << 2))) {
         debug("we got either -s or -d! (good so far!)");
+
         if ((global_options & (1 << 1)) && (global_options & (1 << 2))) {
             error("both -s and -d were set! (bad!)");
             return -1;

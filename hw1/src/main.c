@@ -31,56 +31,38 @@ int main(int argc, char **argv)
         USAGE(*argv, EXIT_SUCCESS);
     }
 
-    if (global_options & (1 << 1)) {
-        debug("-s, serialization mode");
-    }
-
-    if (global_options & (1 << 2)) {
-        debug("-d, deserialization mode");
-    }
-
-    if (string_length(name_buf) > 0) {
-        debug("name_buf set to: %s", name_buf);
-    }
-
-    /* begin serialization/deserialization */
-    //return begin_transplant();
-
-    // test path_init()
-    // is this correct?
+    /**
+     * For both -s and -d
+     */
     if (string_length(name_buf) == 0) {
+        debug("using cwd, no name_buf available");
         if (path_init("./") == -1) {
             error("path_init() error");
             return EXIT_FAILURE;
         }
     } else {
+        debug("using name_buf set to: %s", name_buf);
         path_init(name_buf);
     }
 
-
-    // test path_push();
-    debug("current path_buf: %s", path_buf);
-    if (path_push("someDirectory") == -1) {
-        error("path_push() error");
-        return EXIT_FAILURE;
+    /**
+     * When -s is flagged
+     */
+    if (global_options & (1 << 1)) {
+        debug("-s, serialization mode");
+        if (serialize() == -1) {
+            error("serialize failed");
+            return EXIT_FAILURE;
+        } else {
+            debug("serialized successfully");
+        }
     }
-    debug("after appending path_buf: %s, and new path_length is %d", path_buf, path_length);
 
-    debug("old path_buf is: %s", path_buf);
-    if (path_pop() == -1) {
-        error("path_pop() error");
-        return EXIT_FAILURE;
-    }
-    debug("new path_buf is: %s", path_buf);
-    // if (path_pop() == -1) {
-    //     error("path_pop() error");
-    //     return EXIT_FAILURE;
-    // }
-    // debug("new path_buf is: %s", path_buf);
-
-    if (serialize() == -1) {
-        error("serialize failed");
-        return EXIT_FAILURE;
+    /**
+     * When -d is flagged
+     */
+    if (global_options & (1 << 2)) {
+        debug("-d, deserialization mode");
     }
 
     return EXIT_SUCCESS;

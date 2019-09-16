@@ -79,7 +79,7 @@ static char *record_type_name(int i) {
 int path_init(char *name) {
     // return 0 on success, -1 on error
     if (string_length(name) + 1 > sizeof(path_buf)) {
-        debug("arg string length and null byte (%d) is greater than size of path_buf (%ld)", string_length(name) + 1, sizeof(path_buf));
+        error("arg string length and null byte (%d) is greater than size of path_buf (%ld)", string_length(name) + 1, sizeof(path_buf));
         return -1;
     }
 
@@ -345,20 +345,17 @@ int serialize() {
         error("unable to write record start");
         return -1;
     }
-    debug("finished record start");
 
     if (serialize_directory(1) == -1) {
         error("serialize dir error!");
         return -1;
     }
 
-
-    debug("reached here!");
     if (write_record_end() == -1) {
         error("unable to write record end");
         return -1;
     }
-    debug("last line!");
+
     return 0;
 }
 
@@ -412,6 +409,7 @@ int validargs(int argc, char **argv)
     global_options = 0x0;
 
     if (argc == 1) {
+        error("args are required!");
         return -1;
     }
 
@@ -467,7 +465,6 @@ int validargs(int argc, char **argv)
                     debug("-p flag found!");
                     if (global_options & (1 << 1) || global_options & (1 << 2)) {
                         debug("-d|-s was previously found, so -p can be set.");
-                        //name_buf "name path";
                         if (i + 1 < argc) {
                             // since -c can appear after -p, make sure that the next direct paramter isn't exactly '-c'
                             if (string_length(*(argv + i + 1)) == 2) {
@@ -478,7 +475,6 @@ int validargs(int argc, char **argv)
                                     }
                                 }
                             }
-
                             // set the name_buf buffer to the contents of the parameter after -p
                             int j;
                             for (j = 0; j < string_length(*(argv + i + 1)); ++j) {
@@ -486,7 +482,6 @@ int validargs(int argc, char **argv)
                             }
                             // set last to null terminator just in-case...
                             *(name_buf + j) = '\0';
-
                             debug("contents of name_buf set to: %s", name_buf);
                         } else {
                             error("-p doesn't have anything after it");
@@ -498,7 +493,6 @@ int validargs(int argc, char **argv)
                     }
                 }
             }
-
             debug("this is the char-code after '-': %d", *((*(argv + i) + 1)) );
         }
         debug("this is the contents of the argument %s", *(argv + i));

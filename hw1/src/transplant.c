@@ -455,7 +455,7 @@ int validargs(int argc, char **argv)
                         debug("-d was previously found, so -c can be set.");
                         global_options |= 1 << 3;
                     } else {
-                        debug("-d wasn't previously found, so -c cannot be set.");
+                        error("-d wasn't previously found, so -c cannot be set.");
                         return -1;
                     }
                 }
@@ -473,7 +473,7 @@ int validargs(int argc, char **argv)
                             if (string_length(*(argv + i + 1)) == 2) {
                                 if (*((*(argv + i + 1)) + 0) == 45) {
                                     if (*((*(argv + i + 1)) + 1) == 99) {
-                                        debug("next parameter is -c, not a real path!!!");
+                                        error("next parameter is -c, not a real path!!!");
                                         return -1;
                                     }
                                 }
@@ -489,11 +489,11 @@ int validargs(int argc, char **argv)
 
                             debug("contents of name_buf set to: %s", name_buf);
                         } else {
-                            debug("-p doesn't have anything after it");
+                            error("-p doesn't have anything after it");
                             return -1;
                         }
                     } else {
-                        debug("-d|-s wasn't previously found, so -p cannot be set.");
+                        error("-d|-s wasn't previously found, so -p cannot be set.");
                         return -1;
                     }
                 }
@@ -507,16 +507,16 @@ int validargs(int argc, char **argv)
     if ((global_options & (1 << 1)) || (global_options & (1 << 2))) {
         debug("we got either -s or -d! (good so far!)");
         if ((global_options & (1 << 1)) && (global_options & (1 << 2))) {
-            debug("both -s and -d were set! (bad!)");
+            error("both -s and -d were set! (bad!)");
             return -1;
         } else {
             debug("only 1 set, good!");
             return 0;
         }
     } else {
-        debug("neither -s nor -d was specified");
+        error("neither -s nor -d was specified");
         return -1;
     }
 
-    return -1;
+    return 0;
 }

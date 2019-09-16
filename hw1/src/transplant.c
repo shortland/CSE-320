@@ -239,8 +239,73 @@ int deserialize_file(int depth) {
  * that occur while reading file content and writing to standard output.
  */
 int serialize_directory(int depth) {
-    // To be implemented.
-    return -1;
+    if (write_record_dir_start(depth) == -1) {
+        debug("write record dir start error!");
+        return -1;
+    }
+    // open the initial directory
+    DIR *dir = opendir(path_buf);
+    struct dirent *de;
+    if (dir == NULL) {
+        error("error dir was null!");
+        return -1;
+    }
+    debug("finished getting first dir pointer");
+
+    while ((de = readdir(dir)) != NULL) {
+        if ((string_equals(de->d_name, ".") == 0) || (string_equals(de->d_name, "..") == 0)) {
+            continue;
+        }
+        // push the read file/dir into path_buf
+        if (path_push(de->d_name) == -1) {
+            error("unable to append name to path");
+            return -1;
+        }
+        // get metadata about current file in path_buf
+        // change path_buf every file we recurse through
+        if (stat(path_buf, &stat_buf) == -1) {
+            error("unable to get metadata about current file in path_buf");
+            return -1;
+        }
+        if (S_ISREG(stat_buf.st_mode)) {
+            if (write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, depth, de->d_name) == -1) {
+                error("unable to write dir entry");
+                return -1;
+            }
+            //write_record_file_data(path_buf);
+            if (serialize_file(depth, stat_buf.st_size) == -1) {
+                error("unable to serialize file");
+                return -1;
+            }
+            // write the file-data record
+        } else if (S_ISDIR(stat_buf.st_mode)) {
+            if (write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, depth, de->d_name) == -1) {
+                error("unable to write record dir entry");
+                return -1;
+            }
+            if (serialize_directory(depth + 1) == -1) {
+                error("unable to recursively execute serialize_directory()");
+                return -1;
+            }
+        } else {
+            error("unknown file type");
+            return -1;
+        }
+        // create an dir entry
+
+        // pop the pushed file/dir
+        if (path_pop() == -1) {
+            error("unable to pop from path");
+            return -1;
+        }
+    }
+    closedir(dir);
+    if (write_record_dir_end(depth) == -1) {
+        error("write record dir end error");
+        return -1;
+    }
+
+    return 0;
 }
 
 /*
@@ -257,29 +322,8 @@ int serialize_directory(int depth) {
  * from the file, and I/O errors reading the file data or writing to standard output.
  */
 int serialize_file(int depth, off_t size) {
-    // To be implemented.
-
-    // dir entry record
-    // file data record
-
-    // read contents of file named `path_buf`, it has `size` bytes of data.
-    // serialize its contents
-    // set the depth field to `depth`
-
-    FILE *f = fopen(path_buf, "r");
-    char c;
-    int i;
-    for (i = 0; i < size; i++) {
-        c = fgetc(f);
-        putchar(c);
-    }
-    fclose(f);
-    fflush(stdout);
-
-    if (i == size) {
-        return 0;
-    }
-
+    if (write_record_file_data(depth, path_buf, size) == size) return 0;
+    error("serialize file failed");
     return -1;
 }
 
@@ -297,57 +341,25 @@ int serialize_file(int depth, off_t size) {
  */
 int serialize() {
     debug("entered serialize function");
-    write_record_start();
+    if (write_record_start() == -1) {
+        error("unable to write record start");
+        return -1;
+    }
     debug("finished record start");
-    write_record_dir_start(1);
-    debug("finished base dir start");
 
-    // open the initial directory
-    DIR *dir = opendir(path_buf);
-    struct dirent *de;
-    if (dir == NULL) return EXIT_FAILURE;
-    debug("finished getting first dir pointer");
-
-    while ((de = readdir(dir)) != NULL) {
-        if ((string_equals(de->d_name, ".") == 0) || (string_equals(de->d_name, "..") == 0)) {
-            continue;
-        }
-        // push the read file/dir into path_buf
-        if (path_push(de->d_name) == -1) {
-            return EXIT_FAILURE;
-        }
-        // get metadata about current file in path_buf
-        // change path_buf every file we recurse through
-        if (stat(path_buf, &stat_buf) == -1) return -1;
-        if (S_ISREG(stat_buf.st_mode)) {
-            write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, 1, de->d_name);
-            // write the file-data record
-        } else if (S_ISDIR(stat_buf.st_mode)) {
-            write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, 1, de->d_name);
-            // TODO:
-            // iterate through the subdirectory (also make the directory start entry/end)
-            // implies making this a recursive function rather than just in line in this function.
-        } else {
-            // it's something else we don't care about.
-            // return error?
-        }
-        // create an dir entry
-
-        // pop the pushed file/dir
-        if (path_pop() == -1) {
-            return EXIT_FAILURE;
-        }
+    if (serialize_directory(1) == -1) {
+        error("serialize dir error!");
+        return -1;
     }
 
-    closedir(dir);
 
-
-
-    //serialize_file(0, 6);
-
-    write_record_dir_end(1);
-    write_record_end();
-    return -1;
+    debug("reached here!");
+    if (write_record_end() == -1) {
+        error("unable to write record end");
+        return -1;
+    }
+    debug("last line!");
+    return 0;
 }
 
 /**

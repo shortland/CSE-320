@@ -21,6 +21,6 @@ int write_record_dir_start(uint32_t depth);
 
 int write_record_dir_end(uint32_t depth);
 
-int write_record_file_data();
+int write_record_file_data(uint32_t depth, char *filepath, off_t size);
 
 #endif

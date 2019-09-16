@@ -1,10 +1,13 @@
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdint.h>
+
 #include "debug.h"
 #include "transplant.h"
-#include "stdio.h"
-#include "unistd.h"
-#include "stdint.h"
 #include "string_helpers.h"
-#include <sys/stat.h>
 
 int write_magic_bytes() {
     if (putchar(MAGIC0) == EOF) return -1;
@@ -106,7 +109,46 @@ int write_record_dir_end(uint32_t depth) {
     return 0;
 }
 
-int write_record_file_data() {
-    // TODO
-    return 0;
+/**
+ * FILE_DATA
+ * [Header Only]
+ */
+int write_record_file_data(uint32_t depth, char *filepath, off_t size) {
+    if (write_magic_bytes() == -1) return -1;
+    if (write_type(FILE_DATA) == -1) return -1;
+    if (write_depth((uint32_t) depth) == -1) return -1;
+    if (write_size((uint64_t) HEADER_SIZE) == -1) return -1; // size
+
+    FILE *f = fopen(filepath, "r");
+    if (f == NULL) return -1;
+    int i;
+    for (i = 0; i < size; i++) {
+        putchar(fgetc(f));
+    }
+    fclose(f);
+    fflush(stdout);
+
+    return i;
 }
+
+// int recursive_serializer(char *dirpath, uint32_t depth) {
+//     if (write_record_dir_start(depth) == -1) return -1;
+
+//     DIR *dir = opendir(dirpath);
+//     struct dirent *de;
+//     if (dir == NULL) return -1;
+//     debug("finished getting first dir pointer");
+//     while ((de = readdir(dir)) != NULL) {
+//         if ((string_equals(de->d_name, ".") == 0) || (string_equals(de->d_name, "..") == 0)) {
+//             continue;
+//         }
+//         // push the read file/dir into path_buf
+//         if (path_push(de->d_name) == -1) {
+//             return EXIT_FAILURE;
+//         }
+//     }
+//     closedir(dir);
+
+//     if (write_record_dir_end(depth) == -1) return -1;
+//     return 0;
+// }

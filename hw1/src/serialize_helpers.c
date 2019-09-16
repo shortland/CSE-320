@@ -128,6 +128,7 @@ int write_record_file_data(uint32_t depth, char *filepath, off_t size) {
     for (i = 0; i < size; i++) {
         putchar(fgetc(f));
     }
+
     fclose(f);
 
     return i;

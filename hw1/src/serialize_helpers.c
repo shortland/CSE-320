@@ -66,7 +66,7 @@ int write_record_end() {
  * DIRECTORY_ENTRY = 4
  *
  */
-int write_record_dir_entry(mode_t mode, off_t sizeInfo, uint32_t depth, char *name) {
+int write_record_dir_entry(uint32_t mode, off_t sizeInfo, uint32_t depth, char *name) {
     // Entry name ? bytes
     int amt = string_length(name);
 

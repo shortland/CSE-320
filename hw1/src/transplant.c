@@ -84,7 +84,7 @@ int path_init(char *name) {
     }
 
     // copy over
-    copy_string_and_null("this is a longer word than before!", path_buf);
+    //copy_string_and_null("this is a longer word than before!", path_buf);
     copy_string_and_null(name, path_buf);
 
     // set pathlength to length of path_buf, NOT including null terminator
@@ -190,6 +190,33 @@ int deserialize_directory(int depth) {
      * [END_OF_DIRECTORY]
      *
      */
+    if (read_directory_start(depth) == -1) {
+        error("unable to read directory start at depth %d", depth);
+        return -1;
+    }
+
+    Metadata m;
+    if ((m = read_dir_entry_data(depth)).error == -1) {
+        error("unable to read record metadata");
+        return -1;
+    }
+
+    // using, m.size, get the name of the file/dir
+    // set it to a variable? and create it? but how? without using a buffer??
+    if (S_ISREG(m.permissions)) {
+        debug("its a file!");
+    } else if (S_ISDIR(m.permissions)) {
+        debug("it's a directory!");
+    } else {
+        error("unknown type from permissions %d, remaining size: %lu", m.permissions, m.size);
+        return -1;
+    }
+
+    if (read_directory_end(depth) == -1) {
+        error("unable to read directory end at depth %d", depth);
+        return -1;
+    }
+
     return -1;
 }
 
@@ -274,6 +301,7 @@ int serialize_directory(int depth) {
             return -1;
         }
 
+        debug("THE TYPE IS: %d", stat_buf.st_mode);
         if (S_ISREG(stat_buf.st_mode)) {
             if (write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, depth, de->d_name) == -1) {
                 error("unable to write dir entry");
@@ -395,14 +423,22 @@ int deserialize() {
         return -1;
     }
 
-
     if (read_record_start() == -1) {
         error("error reading record start");
         return -1;
     }
 
-    // read from stdin the serialized data to reconstruct.
-    return -1;
+    if (deserialize_directory(1) == -1) {
+        error("unable to deserialize directory");
+        return -1;
+    }
+
+    if (read_record_end() == -1) {
+        error("error reading record end");
+        return -1;
+    }
+
+    return 0;
 }
 
 /**

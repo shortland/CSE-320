@@ -3,12 +3,14 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "const.h"
 #include "transplant.h"
 #include "debug.h"
 #include "string_helpers.h"
 #include "serialize_helpers.h"
+#include "deserialize_helpers.h"
 
 #ifdef _STRING_H
 #error "Do not #include <string.h>. You will get a ZERO."
@@ -379,7 +381,27 @@ int serialize() {
  * @return 0 if deserialization completes without error, -1 if an error occurs.
  */
 int deserialize() {
-    // To be implemented.
+    debug("entered deserialize function");
+
+    DIR* dir = opendir(path_buf);
+    if (dir) {
+        debug("specified directory in path_buf already exists.");
+        closedir(dir);
+    } else if (ENOENT == errno) {
+        debug("specified path_buf directory doesn't exist, attempting to create it.");
+        mkdir(path_buf, 0700);
+    } else {
+        error("unable to open directory for unknown reason.");
+        return -1;
+    }
+
+
+    if (read_record_start() == -1) {
+        error("error reading record start");
+        return -1;
+    }
+
+    // read from stdin the serialized data to reconstruct.
     return -1;
 }
 

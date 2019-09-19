@@ -55,6 +55,7 @@ int main(int argc, char **argv) {
             return EXIT_FAILURE;
         } else {
             debug("serialized successfully");
+            fflush(stdout);
         }
     }
 
@@ -63,6 +64,14 @@ int main(int argc, char **argv) {
      */
     if (global_options & (1 << 2)) {
         debug("-d, deserialization mode");
+
+        if (deserialize() == -1) {
+            error("deserialize failed");
+            return EXIT_FAILURE;
+        } else {
+            debug("deserialized successfully");
+            fflush(stdout);
+        }
     }
 
     return EXIT_SUCCESS;

@@ -34,7 +34,7 @@ struct Metadata read_dir_entry_data();
 
 int read_file_data_make_file(int depth, char *path);
 
-int read_dir_name_create_dir(char *path);
+int create_dir(char *path);
 
 int validate_record_return_type(int depth);
 

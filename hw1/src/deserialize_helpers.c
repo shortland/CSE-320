@@ -308,9 +308,9 @@ int read_file_data_make_file(int depth, char *path) {
 }
 
 /**
- * Just create the directory, expect that it should
+ * Just create the directory
  */
-int read_dir_name_create_dir(char *path) {
+int create_dir(char *path) {
     if (mkdir(path, 0700) == -1) {
         return -1;
     }

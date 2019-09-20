@@ -17,6 +17,6 @@ int position_of_char_from_suffix(char *source, char a);
 
 int string_equals(char *first, char *second);
 
-int read_stdin_append_string(char *dest, int startAtPos, int length);
+int read_stdin_into_name(char *dest, int startAtPos, int length);
 
 #endif

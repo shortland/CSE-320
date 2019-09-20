@@ -109,6 +109,8 @@ int path_init(char *name) {
  * @return 0 in case of success, -1 otherwise.
  */
 int path_push(char *name) {
+    debug("attempting to path_push with: %s", name);
+
     if (string_contains_char(name, '/') == 0) {
         debug("string contains needle, error.");
         return -1;
@@ -120,7 +122,14 @@ int path_push(char *name) {
         return -1;
     }
 
-    append_string_to_existing(path_buf, "/");
+    // check if path_buf has a lagging / already
+    if (position_of_char_from_suffix(path_buf, '/') == string_length(path_buf) - 1) {
+        debug("found / at end of path_buf, don't bother appending a new one");
+    } else {
+        debug("appending a new slash");
+        append_string_to_existing(path_buf, "/");
+    }
+
     append_string_to_existing(path_buf, name);
     debug("new path_buf after append is: %s", path_buf);
 
@@ -218,31 +227,93 @@ int deserialize_directory(int depth) {
 
             if ((m = read_dir_entry_data()).error == -1) {
                 error("unable to read record metadata");
+
                 return -1;
             }
 
-            append_string_to_existing(path_buf, "/");
-            path_length = string_length(path_buf);
-
-            if (read_stdin_append_string(path_buf, path_length, m.size) == -1) {
+            if (read_stdin_into_name(name_buf, 0, m.size) == -1) {
                 error("unable to read name from stdin");
+
+                return -1;
+            }
+
+            if (path_push(name_buf) == -1) {
+                error("unable to push name_buf into path_buf");
+
                 return -1;
             } else {
-                debug("CURRENT PATH BUF IS %s", path_buf);
+                debug("path_buf is now %s", path_buf);
             }
 
             path_length = string_length(path_buf);
             debug("the path_buf is now: %s", path_buf);
 
-            if (S_ISREG(m.permissions)) {
+            if (S_ISDIR(m.permissions)) {
+                DIR* dir = opendir(path_buf);
+
+                if (dir) {
+                    debug("directory exists; check if clobber is present");
+
+                    if (global_options & (1 << 3)) {
+                        debug("-c, clobber was set, and dir already exists...\
+                            shouldnt overwrite dirs, so pretend we made it already");
+
+                        return deserialize_directory(depth + 1);
+                    } else {
+                        error("directory exists & wasn't given -c");
+
+                        return -1;
+                    }
+                    closedir(dir);
+                } else if (ENOENT == errno) {
+                    debug("directory not found, attempting to create it.");
+
+                    if (create_dir(path_buf) == -1) {
+                        error("unable to create directory in path_buf (overwrite not enabled, but shouldn't exist)");
+
+                        return -1;
+                    }
+
+                    return deserialize_directory(depth + 1);
+                } else {
+                    error("opendir failed for unknown reason");
+
+                    return -1;
+                }
+            } else if (S_ISREG(m.permissions)) {
                 debug("its a file!");
 
                 if (access(path_buf, F_OK) != -1) {
-                    // file exists, check if -c is set; if it is, then overwrite. otherwise return -1;
+                    debug("file already exists, check if clobber is present.");
+
+                    if (global_options & (1 << 3)) {
+                        debug("clobber is set, overwrite file that exists");
+
+                        if (read_file_data_make_file(depth, path_buf) == -1) {
+                            error("unable to read file data and recreate the file");
+
+                            return -1;
+                        }
+
+                        //done with current file/dir, pop it off
+                        if (path_pop() == -1) {
+                            error("unable to pop from path");
+
+                            return -1;
+                        }
+
+                        continue;
+                    } else {
+                        error("file exists, and clobber is not present");
+
+                        return -1;
+                    }
                 } else {
                     debug("file at %s not found. should attempt to create it.", path_buf);
 
                     if (read_file_data_make_file(depth, path_buf) == -1) {
+                        error("unable to read file data and recreate the file");
+
                         return -1;
                     }
 
@@ -254,25 +325,6 @@ int deserialize_directory(int depth) {
                     }
 
                     continue;
-                }
-            } else if (S_ISDIR(m.permissions)) {
-                DIR* dir = opendir(path_buf);
-
-                if (dir) {
-                    // directory exists, check if -c is set; ...
-                    closedir(dir);
-                } else if (ENOENT == errno) {
-                    debug("_____ DIRECTORY not found, should attempt to create it.");
-
-                    if (read_dir_name_create_dir(path_buf) == -1) {
-                        return -1;
-                    }
-
-                    return deserialize_directory(depth + 1);
-                } else {
-                    error("opendir failed for unknown reason");
-
-                    return -1;
                 }
             } else {
                 error("unknown type from permissions %d, remaining size: %lu", m.permissions, m.size);
@@ -395,17 +447,7 @@ int serialize_directory(int depth) {
         }
 
         debug("THE TYPE IS: %d", stat_buf.st_mode);
-        if (S_ISREG(stat_buf.st_mode)) {
-            if (write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, depth, de->d_name) == -1) {
-                error("unable to write dir entry");
-                return -1;
-            }
-
-            if (serialize_file(depth, stat_buf.st_size) == -1) {
-                error("unable to serialize file");
-                return -1;
-            }
-        } else if (S_ISDIR(stat_buf.st_mode)) {
+        if (S_ISDIR(stat_buf.st_mode)) {
             if (write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, depth, de->d_name) == -1) {
                 error("unable to write record dir entry");
                 return -1;
@@ -413,6 +455,16 @@ int serialize_directory(int depth) {
 
             if (serialize_directory(depth + 1) == -1) {
                 error("unable to recursively execute serialize_directory()");
+                return -1;
+            }
+        } else if (S_ISREG(stat_buf.st_mode)) {
+            if (write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, depth, de->d_name) == -1) {
+                error("unable to write dir entry");
+                return -1;
+            }
+
+            if (serialize_file(depth, stat_buf.st_size) == -1) {
+                error("unable to serialize file");
                 return -1;
             }
         } else {

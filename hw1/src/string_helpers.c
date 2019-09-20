@@ -114,7 +114,7 @@ int string_equals(char *first, char *second) {
     return 0;
 }
 
-int read_stdin_append_string(char *dest, int startAtPos, int length) {
+int read_stdin_into_name(char *dest, int startAtPos, int length) {
     int readChar;
 
     int i;

@@ -77,18 +77,14 @@ static char *record_type_name(int i) {
  * @return 0 on success, -1 in case of error
  */
 int path_init(char *name) {
-    // return 0 on success, -1 on error
     if (string_length(name) + 1 > sizeof(path_buf)) {
         error("arg string length and null byte (%d) is greater than size of path_buf (%ld)", string_length(name) + 1, sizeof(path_buf));
 
         return -1;
     }
 
-    // copy over
-    //copy_string_and_null("this is a longer word than before!", path_buf);
     copy_string_and_null(name, path_buf);
 
-    // set pathlength to length of path_buf, NOT including null terminator
     path_length = string_length(name);
 
     debug("path_buf is actually: '%s'; and path_length is: %d", path_buf, path_length);
@@ -199,6 +195,8 @@ int path_pop() {
 int deserialize_directory(int depth) {
     int recordType;
 
+    mode_t dirPermissions;
+
     while ((recordType = validate_record_return_type(depth)) != -1) {
         debug("START OF WHILE LOOP; PATH %s; LENGTH: %d", path_buf, path_length);
 
@@ -250,7 +248,7 @@ int deserialize_directory(int depth) {
 
                     if (global_options & (1 << 3)) {
                         debug("-c, clobber was set, and dir already exists...\
-                            shouldnt overwrite dirs, so pretend we made it already");
+                            shouldnt overwrite dirs, so continue...");
 
                         return deserialize_directory(depth + 1);
                     } else {
@@ -258,12 +256,23 @@ int deserialize_directory(int depth) {
 
                         return -1;
                     }
-                    closedir(dir);
+
+                    if (closedir(dir) == -1) {
+                        error("unable to close dir");
+
+                        return -1;
+                    }
                 } else if (ENOENT == errno) {
                     debug("directory not found, attempting to create it.");
 
                     if (create_dir(path_buf) == -1) {
                         error("unable to create directory in path_buf (overwrite not enabled, but shouldn't exist)");
+
+                        return -1;
+                    }
+
+                    if (chmod(path_buf, m.permissions & 0777) == -1) {
+                        error("unable to set permissions for the specfied directory");
 
                         return -1;
                     }
@@ -277,48 +286,22 @@ int deserialize_directory(int depth) {
             } else if (S_ISREG(m.permissions)) {
                 debug("its a file!");
 
-                if (access(path_buf, F_OK) != -1) {
-                    debug("file already exists, check if clobber is present.");
+                if (deserialize_file(depth) == -1) {
+                    error("unable to deserialize file");
 
-                    if (global_options & (1 << 3)) {
-                        debug("clobber is set, overwrite file that exists");
+                    return -1;
+                }
 
-                        if (read_file_data_make_file(depth, path_buf) == -1) {
-                            error("unable to read file data and recreate the file");
+                if (chmod(path_buf, m.permissions & 0777) == -1) {
+                    error("unable to change permissions for the specified file");
 
-                            return -1;
-                        }
+                    return -1;
+                }
 
-                        //done with current file/dir, pop it off
-                        if (path_pop() == -1) {
-                            error("unable to pop from path");
+                if (path_pop() == -1) {
+                    error("unable to pop from path");
 
-                            return -1;
-                        }
-
-                        continue;
-                    } else {
-                        error("file exists, and clobber is not present");
-
-                        return -1;
-                    }
-                } else {
-                    debug("file at %s not found. should attempt to create it.", path_buf);
-
-                    if (read_file_data_make_file(depth, path_buf) == -1) {
-                        error("unable to read file data and recreate the file");
-
-                        return -1;
-                    }
-
-                    //done with current file/dir, pop it off
-                    if (path_pop() == -1) {
-                        error("unable to pop from path");
-
-                        return -1;
-                    }
-
-                    continue;
+                    return -1;
                 }
             } else {
                 error("unknown type from permissions %d, remaining size: %lu", m.permissions, m.size);
@@ -345,9 +328,6 @@ int deserialize_directory(int depth) {
             }
 
             return deserialize_directory(depth - 1);
-
-            // TODO:
-            // apply CHMOD here?
         } else {
             error("record type not expected %d", recordType);
 
@@ -376,14 +356,33 @@ int deserialize_directory(int depth) {
  * deserialized file.
  */
 int deserialize_file(int depth) {
-    // assumes path_buf contains name of file to be deserialized
-    // File must not already exist
-    //   unless clobber bit is set in the global_options variable
-    // reads from STDIN a single FILE_DATA record
-    // recreates the file
+    if (access(path_buf, F_OK) != -1) {
+        debug("file already exists, check if clobber is present.");
 
-    // depth is supposed to match the depth field in the FILE_DATA record
-    return -1;
+        if (global_options & (1 << 3)) {
+            debug("clobber is set, overwrite file that exists");
+
+            if (read_file_data_make_file(depth, path_buf) == -1) {
+                error("unable to read file data and recreate the file");
+
+                return -1;
+            }
+        } else {
+            error("file exists, and clobber is not present");
+
+            return -1;
+        }
+    } else {
+        debug("file at %s not found. should attempt to create it.", path_buf);
+
+        if (read_file_data_make_file(depth, path_buf) == -1) {
+            error("unable to read file data and recreate the file");
+
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 /*

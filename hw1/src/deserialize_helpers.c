@@ -317,6 +317,8 @@ int read_file_data_make_file(int depth, char *path) {
     debug("attempting to match type byte");
 
     if (match_type(5) == -1) {
+        error("record type was not expected FILE_DATA");
+
         return -1;
     }
 

@@ -194,8 +194,7 @@ int path_pop() {
  */
 int deserialize_directory(int depth) {
     int recordType;
-
-    mode_t dirPermissions;
+    // int isDirOpen = depth - 1;
 
     while ((recordType = validate_record_return_type(depth)) != -1) {
         debug("START OF WHILE LOOP; PATH %s; LENGTH: %d", path_buf, path_length);
@@ -208,6 +207,8 @@ int deserialize_directory(int depth) {
             }
 
             debug("successfully read a start of directory at depth %d", depth);
+
+            // isDirOpen++;
 
             continue;
         }
@@ -309,6 +310,12 @@ int deserialize_directory(int depth) {
                 return -1;
             }
         } else if (recordType == 3) {
+            // if (isDirOpen < 0) {
+            //     error("there is no START_OF_DIRECTORY record to match this END_OF_DIRECTORY record");
+
+            //     return -1;
+            // }
+
             if (read_directory_end() == -1) {
                 error("unable to read directory end at depth %d", depth);
 
@@ -326,6 +333,8 @@ int deserialize_directory(int depth) {
 
                 return 0;
             }
+
+            // isDirOpen--;
 
             return deserialize_directory(depth - 1);
         } else {
@@ -591,7 +600,11 @@ int deserialize() {
     } else if (ENOENT == errno) {
         debug("specified path_buf directory doesn't exist, attempting to create it.");
 
-        mkdir(path_buf, 0700);
+        if (mkdir(path_buf, 0700) == -1) {
+            error("unable to create directory specified by path_buf");
+
+            return -1;
+        }
     } else {
         error("unable to open directory for unknown reason.");
 

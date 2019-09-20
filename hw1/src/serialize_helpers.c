@@ -123,7 +123,10 @@ int write_record_file_data(uint32_t depth, char *filepath, off_t size) {
     if (write_size((uint64_t) totalSize) == -1) return -1; // size
 
     FILE *f = fopen(filepath, "r");
-    if (f == NULL) return -1;
+    if (f == NULL) {
+        error("error opening file to write");
+        return -1;
+    }
 
     int i;
     int getChar;
@@ -132,12 +135,14 @@ int write_record_file_data(uint32_t depth, char *filepath, off_t size) {
 
         if (feof(f)) {
             error("fgetc reached EOF");
-            break;
+            fclose(f);
+            return -1;
         }
 
         if (putchar(getChar) == EOF) {
             error("putchar reached EOF");
-            break;
+            fclose(f);
+            return -1;
         }
     }
 

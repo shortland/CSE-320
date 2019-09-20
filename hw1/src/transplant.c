@@ -80,6 +80,7 @@ int path_init(char *name) {
     // return 0 on success, -1 on error
     if (string_length(name) + 1 > sizeof(path_buf)) {
         error("arg string length and null byte (%d) is greater than size of path_buf (%ld)", string_length(name) + 1, sizeof(path_buf));
+
         return -1;
     }
 
@@ -113,20 +114,24 @@ int path_push(char *name) {
 
     if (string_contains_char(name, '/') == 0) {
         debug("string contains needle, error.");
+
         return -1;
     }
 
     //debug("cannot exceed size of path_buf %d", string_length(name) + string_length(path_buf) + 1 + 1);
     if (string_length(name) + string_length(path_buf) + 1 + 1 > sizeof(path_buf)) {
         debug("new path_buf would be too large... error");
+
         return -1;
     }
 
     // check if path_buf has a lagging / already
     if (position_of_char_from_suffix(path_buf, '/') == string_length(path_buf) - 1) {
         debug("found / at end of path_buf, don't bother appending a new one");
+
     } else {
         debug("appending a new slash");
+
         append_string_to_existing(path_buf, "/");
     }
 
@@ -154,6 +159,7 @@ int path_push(char *name) {
 int path_pop() {
     if (string_length(path_buf) == 0 || path_length == 0) {
         debug("nothing to pop from path, error!");
+
         return -1;
     }
 
@@ -161,7 +167,9 @@ int path_pop() {
     if (position_of_char_from_suffix(path_buf, '/') == -1) {
         copy_string_and_null("", path_buf);
         path_length = 0;
+
         debug("path_buf set to nothing: %s", path_buf);
+
         return 0;
     }
 
@@ -189,16 +197,6 @@ int path_pop() {
  * directories.
  */
 int deserialize_directory(int depth) {
-    // To be implemented.
-    // path_buf has name of an existing directory
-    // reads a sequence of DIRECTORY_ENTRY records (START_OF_DIRECTORY and END_OF_DIRECTORY)
-    /*
-     * [START_OF_DIRECTORY]
-     *    DIRECTORY_ENTRY
-     *    DIRECTORY_ENTRY
-     * [END_OF_DIRECTORY]
-     *
-     */
     int recordType;
 
     while ((recordType = validate_record_return_type(depth)) != -1) {
@@ -207,15 +205,11 @@ int deserialize_directory(int depth) {
         if (recordType == 2) {
             if (read_directory_start() == -1) {
                 error("unable to read directory start at depth %d", depth);
+
                 return -1;
             }
 
             debug("successfully read a start of directory at depth %d", depth);
-
-            // if (path_pop() == -1) {
-            //     error("unable to pop from path");
-            //     return -1;
-            // }
 
             continue;
         }
@@ -354,7 +348,6 @@ int deserialize_directory(int depth) {
 
             // TODO:
             // apply CHMOD here?
-            // pop path?
         } else {
             error("record type not expected %d", recordType);
 
@@ -413,13 +406,16 @@ int deserialize_file(int depth) {
 int serialize_directory(int depth) {
     if (write_record_dir_start(depth) == -1) {
         debug("write record dir start error!");
+
         return -1;
     }
 
     struct dirent *de;
     DIR *dir = opendir(path_buf);
+
     if (dir == NULL) {
         error("error dir was null!");
+
         return -1;
     }
 
@@ -430,12 +426,15 @@ int serialize_directory(int depth) {
 
     while ((de = readdir(dir)) != NULL) {
         if ((string_equals(de->d_name, ".") == 0) || (string_equals(de->d_name, "..") == 0)) {
+            debug("skipping . or ..");
+
             continue;
         }
 
         // push the read file/dir into path_buf
         if (path_push(de->d_name) == -1) {
             error("unable to append name to path");
+
             return -1;
         }
 
@@ -443,45 +442,58 @@ int serialize_directory(int depth) {
         // change path_buf every file we recurse through
         if (stat(path_buf, &stat_buf) == -1) {
             error("unable to get metadata about current file in path_buf");
+
             return -1;
         }
 
         debug("THE TYPE IS: %d", stat_buf.st_mode);
+
         if (S_ISDIR(stat_buf.st_mode)) {
             if (write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, depth, de->d_name) == -1) {
                 error("unable to write record dir entry");
+
                 return -1;
             }
 
             if (serialize_directory(depth + 1) == -1) {
                 error("unable to recursively execute serialize_directory()");
+
                 return -1;
             }
         } else if (S_ISREG(stat_buf.st_mode)) {
             if (write_record_dir_entry(stat_buf.st_mode, stat_buf.st_size, depth, de->d_name) == -1) {
                 error("unable to write dir entry");
+
                 return -1;
             }
 
             if (serialize_file(depth, stat_buf.st_size) == -1) {
                 error("unable to serialize file");
+
                 return -1;
             }
         } else {
             error("unknown file type");
+
             return -1;
         }
 
         if (path_pop() == -1) {
             error("unable to pop from path");
+
             return -1;
         }
     }
 
-    closedir(dir);
+    if (closedir(dir) == -1) {
+        error("unable to close dir");
+
+        return -1;
+    }
 
     if (write_record_dir_end(depth) == -1) {
         error("write record dir end error");
+
         return -1;
     }
 
@@ -502,8 +514,20 @@ int serialize_directory(int depth) {
  * from the file, and I/O errors reading the file data or writing to standard output.
  */
 int serialize_file(int depth, off_t size) {
-    if (write_record_file_data(depth, path_buf, size) == size) return 0;
-    error("serialize file failed");
+    if (size == -1) {
+        error("write size is negative");
+
+        return -1;
+    }
+
+    if (write_record_file_data(depth, path_buf, size) == size) {
+        debug("sucessfully wrote FILE_DATA record");
+
+        return 0;
+    }
+
+    error("serialize FILE_DATA record failed");
+
     return -1;
 }
 
@@ -524,16 +548,19 @@ int serialize() {
 
     if (write_record_start() == -1) {
         error("unable to write record start");
+
         return -1;
     }
 
     if (serialize_directory(1) == -1) {
         error("serialize dir error!");
+
         return -1;
     }
 
     if (write_record_end() == -1) {
         error("unable to write record end");
+
         return -1;
     }
 
@@ -557,29 +584,36 @@ int deserialize() {
     debug("entered deserialize function");
 
     DIR* dir = opendir(path_buf);
+
     if (dir) {
         debug("specified directory in path_buf already exists.");
+
         closedir(dir);
     } else if (ENOENT == errno) {
         debug("specified path_buf directory doesn't exist, attempting to create it.");
+
         mkdir(path_buf, 0700);
     } else {
         error("unable to open directory for unknown reason.");
+
         return -1;
     }
 
     if (read_record_start() == -1) {
         error("error reading record start");
+
         return -1;
     }
 
     if (deserialize_directory(1) == -1) {
         error("unable to deserialize directory");
+
         return -1;
     }
 
     if (read_record_end() == -1) {
         error("error reading record end");
+
         return -1;
     }
 
@@ -603,21 +637,13 @@ int deserialize() {
  * the selected options.
  */
 int validargs(int argc, char **argv) {
-    // TODO unset other bits too instead of just |= (appends/switches just 1 bit)
-    // int to character mappings
-    // 45: '-'
-    // 104: 'h'
-    // 115: 's'
-    // 100: 'd'
-    // 99: 'c'
-    // 112: 'p'
-
     debug("this is argc %d", argc);
 
     global_options = 0x0;
 
     if (argc == 1) {
         error("args are required!");
+
         return -1;
     }
 
@@ -629,7 +655,9 @@ int validargs(int argc, char **argv) {
                     // -h must be the first argument after program name
                     if (i == 1) {
                         debug("-h flag found!");
+
                         global_options |= 1 << 0;
+
                         return 0;
                     } else {
                         return -1;
@@ -641,6 +669,7 @@ int validargs(int argc, char **argv) {
             if (*((*(argv + i)) + 1) == 115) {
                 if (*((*(argv + i)) + 2) == 0) {
                     debug("-s flag found!");
+
                     global_options |= 1 << 1;
                 }
             }
@@ -649,6 +678,7 @@ int validargs(int argc, char **argv) {
             if (*((*(argv + i)) + 1) == 100) {
                 if (*((*(argv + i)) + 2) == 0) {
                     debug("-d flag found!");
+
                     global_options |= 1 << 2;
                 }
             }
@@ -660,9 +690,11 @@ int validargs(int argc, char **argv) {
 
                     if (global_options & (1 << 2)) {
                         debug("-d was previously found, so -c can be set.");
+
                         global_options |= 1 << 3;
                     } else {
                         error("-d wasn't previously found, so -c cannot be set.");
+
                         return -1;
                     }
                 }
@@ -684,6 +716,7 @@ int validargs(int argc, char **argv) {
                                 if (*((*(argv + i + 1)) + 0) == 45) {
                                     if (*((*(argv + i + 1)) + 1) == 99) {
                                         error("next parameter is -c, not a real path!!!");
+
                                         return -1;
                                     }
                                 }
@@ -701,10 +734,12 @@ int validargs(int argc, char **argv) {
                             debug("contents of name_buf set to: %s", name_buf);
                         } else {
                             error("-p doesn't have anything after it");
+
                             return -1;
                         }
                     } else {
                         error("-d|-s wasn't previously found, so -p cannot be set.");
+
                         return -1;
                     }
                 }
@@ -721,13 +756,16 @@ int validargs(int argc, char **argv) {
 
         if ((global_options & (1 << 1)) && (global_options & (1 << 2))) {
             error("both -s and -d were set! (bad!)");
+
             return -1;
         } else {
             debug("only 1 set, good!");
+
             return 0;
         }
     } else {
         error("neither -s nor -d was specified");
+
         return -1;
     }
 

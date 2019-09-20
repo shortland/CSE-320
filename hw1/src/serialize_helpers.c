@@ -126,8 +126,19 @@ int write_record_file_data(uint32_t depth, char *filepath, off_t size) {
     if (f == NULL) return -1;
 
     int i;
+    int getChar;
     for (i = 0; i < size; i++) {
-        putchar(fgetc(f));
+        getChar = fgetc(f);
+
+        if (feof(f)) {
+            error("fgetc reached EOF");
+            break;
+        }
+
+        if (putchar(getChar) == EOF) {
+            error("putchar reached EOF");
+            break;
+        }
     }
 
     fclose(f);

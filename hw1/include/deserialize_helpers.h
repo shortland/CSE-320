@@ -5,6 +5,7 @@ typedef struct Metadata {
     int error;
     uint64_t size;
     mode_t permissions;
+    off_t fileSize;
 } Metadata;
 
 int read_byte();
@@ -25,10 +26,16 @@ int read_record_start();
 
 int read_record_end();
 
-int read_directory_start(int depth);
+int read_directory_start();
 
-int read_directory_end(int depth);
+int read_directory_end();
 
-struct Metadata read_dir_entry_data(int depth);
+struct Metadata read_dir_entry_data();
+
+int read_file_data_make_file(int depth, char *path);
+
+int read_dir_name_create_dir(char *path);
+
+int validate_record_return_type(int depth);
 
 #endif

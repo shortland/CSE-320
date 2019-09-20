@@ -100,7 +100,7 @@ int match_raw_bytes(uint64_t bytes, int amount) {
         } else if (readChar == rawByte) {
             debug("readchar was the expected byte!");
         } else {
-            error("read char was not expected byte");
+            error("read char was not expected byte; expected: %d; actual: %d", rawByte, readChar);
             return -1;
         }
     }
@@ -121,6 +121,27 @@ int match_size(uint64_t size) {
         return -1;
     }
     return 0;
+}
+
+int validate_record_return_type(int depth) {
+    debug("attempting to match magic bytes");
+    if (match_magic_bytes() == -1) {
+        return -1;
+    }
+
+    debug("attempting to read type byte");
+    int type;
+    if ((type = read_byte()) == -1) {
+        return -1;
+    }
+    debug("got type of %d", type);
+
+    debug("attempting to match depth bytes");
+    if (match_depth(depth) == -1) {
+        return -1;
+    }
+
+    return type;
 }
 
 int read_record_start() {
@@ -175,22 +196,7 @@ int read_record_end() {
     return 0;
 }
 
-int read_directory_start(int depth) {
-    debug("attempting to match magic bytes");
-    if (match_magic_bytes() == -1) {
-        return -1;
-    }
-
-    debug("attempting to match type byte");
-    if (match_type(2) == -1) {
-        return -1;
-    }
-
-    debug("attempting to match depth bytes");
-    if (match_depth(depth) == -1) {
-        return -1;
-    }
-
+int read_directory_start() {
     debug("attempting to match size bytes");
     if (match_size(16) == -1) {
         return -1;
@@ -201,22 +207,7 @@ int read_directory_start(int depth) {
     return 0;
 }
 
-int read_directory_end(int depth) {
-    debug("attempting to match magic bytes");
-    if (match_magic_bytes() == -1) {
-        return -1;
-    }
-
-    debug("attempting to match type byte");
-    if (match_type(3) == -1) {
-        return -1;
-    }
-
-    debug("attempting to match depth bytes");
-    if (match_depth(depth) == -1) {
-        return -1;
-    }
-
+int read_directory_end() {
     debug("attempting to match size bytes");
     if (match_size(16) == -1) {
         return -1;
@@ -235,29 +226,14 @@ int read_directory_end(int depth) {
 
 // this function should return mode_t (permissions and type)
 // and also should return the: recordSize (so that dir name and the rest can be parsed out)
-struct Metadata read_dir_entry_data(int depth) {
-    debug("attempting to match magic bytes");
-    if (match_magic_bytes() == -1) {
-        return (Metadata) {.error = -1};
-    }
-
-    debug("attempting to match type byte");
-    if (match_type(4) == -1) {
-        return (Metadata) {.error = -1};
-    }
-
-    debug("attempting to match depth bytes");
-    if (match_depth(depth) == -1) {
-        return (Metadata) {.error = -1};
-    }
-
+struct Metadata read_dir_entry_data() {
     debug("attempting to get size of record");
     uint64_t recordSize;
     if ((recordSize = read_record_size()) == -1) {
         return (Metadata) {.error = -1};
     }
-    // remove header //and metadata bytes
-    recordSize -= (16);
+    // remove header and metadata bytes
+    recordSize -= (16 + 12);
 
     // also holds info about the type (dir or file)
     debug("attempting to get permissions bytes");
@@ -266,33 +242,79 @@ struct Metadata read_dir_entry_data(int depth) {
         return (Metadata) {.error = -1};
     }
     debug("permissions are %d", permissions);
-    // remove the read permission bytes from size
-    //recordSize -= 4;
 
-    // should be done outsied this function
-    // debug("attempting to get file size");
-    // off_t fileSize;
-    // if ((fileSize = read_meta_file_size()) == -1) {
-    //     return -1;
-    // }
-
-    // debug("attempting to get dir/file name");
+    debug("attempting to get filesize bytes");
+    off_t fileSize;
+    if ((fileSize = read_meta_file_size()) == -1) {
+        return (Metadata) {.error = -1};
+    }
+    debug("filesize bytes are %ld", fileSize);
 
     return (Metadata) {
         .error = 0,
         .permissions = permissions,
-        .size = recordSize
+        .size = recordSize,
+        .fileSize = fileSize
     };
+}
 
-    // debug("attempting to read record type");
-    // int recordType;
-    // if ((recordType = read_byte()) == -1) {
-    //     return -1;
-    // }
+int read_file_data_make_file(int depth, char *path) {
+    debug("attempting to match magic bytes");
+    if (match_magic_bytes() == -1) {
+        return -1;
+    }
 
-    // return recordType;
+    debug("attempting to match type byte");
+    if (match_type(5) == -1) {
+        return -1;
+    }
 
-    // GET THE TYPE, make sure the type it got is a "directory entry"
-    // then, return whether it is a file or a directory type
-    // (this is parsed from the metadata of a directory entry record)
+    debug("attempting to match depth bytes");
+    if (match_depth(depth) == -1) {
+        return -1;
+    }
+
+    debug("attempting to get size of record");
+    uint64_t fileSize;
+    if ((fileSize = read_record_size()) == -1) {
+        return -1;
+    }
+    fileSize -= 16;
+    debug("filesize is %ld", fileSize);
+
+    FILE *fp = fopen(path, "w");
+    if (fp == NULL) {
+        error("couldn't open file");
+        return -1;
+    } else {
+        int readChar;
+
+        debug("attempting to read stdin and write bytes to file");
+        for (int i = 0; i < fileSize; ++i) {
+            if ((readChar = read_byte()) == -1) {
+                error("error reading a byte for filedata");
+                return -1;
+            }
+
+            debug("writing byte %d to file", readChar);
+            fputc(readChar, fp);
+        }
+
+        fclose(fp);
+    }
+
+    debug("successfully wrote bytes to file");
+    return 0;
+}
+
+/**
+ * Just create the directory, expect that it should
+ */
+int read_dir_name_create_dir(char *path) {
+    if (mkdir(path, 0700) == -1) {
+        return -1;
+    }
+
+    debug("successfully created directory");
+    return 0;
 }

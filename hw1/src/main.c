@@ -41,7 +41,11 @@ int main(int argc, char **argv) {
         }
     } else {
         debug("using name_buf set to: %s", name_buf);
-        path_init(name_buf);
+
+        if (path_init(name_buf) == -1) {
+            error("path_init() error");
+            return EXIT_FAILURE;
+        }
     }
 
     /**

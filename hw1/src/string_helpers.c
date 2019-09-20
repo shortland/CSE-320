@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "debug.h"
 
 int string_length(char *string) {
@@ -108,6 +110,24 @@ int string_equals(char *first, char *second) {
             return -1;
         }
     }
+
+    return 0;
+}
+
+int read_stdin_append_string(char *dest, int startAtPos, int length) {
+    int readChar;
+
+    int i;
+    for (i = 0; i < length; ++i) {
+        if ((readChar = getchar()) == EOF) {
+            error("read char was EOF");
+            return -1;
+        }
+
+        *(dest + (startAtPos + i)) = readChar;
+    }
+
+    *(dest + (startAtPos + i)) = '\0';
 
     return 0;
 }

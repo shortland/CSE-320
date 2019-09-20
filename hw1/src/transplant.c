@@ -190,31 +190,124 @@ int deserialize_directory(int depth) {
      * [END_OF_DIRECTORY]
      *
      */
-    if (read_directory_start(depth) == -1) {
-        error("unable to read directory start at depth %d", depth);
-        return -1;
-    }
+    int recordType;
 
-    Metadata m;
-    if ((m = read_dir_entry_data(depth)).error == -1) {
-        error("unable to read record metadata");
-        return -1;
-    }
+    while ((recordType = validate_record_return_type(depth)) != -1) {
+        debug("START OF WHILE LOOP; PATH %s; LENGTH: %d", path_buf, path_length);
 
-    // using, m.size, get the name of the file/dir
-    // set it to a variable? and create it? but how? without using a buffer??
-    if (S_ISREG(m.permissions)) {
-        debug("its a file!");
-    } else if (S_ISDIR(m.permissions)) {
-        debug("it's a directory!");
-    } else {
-        error("unknown type from permissions %d, remaining size: %lu", m.permissions, m.size);
-        return -1;
-    }
+        if (recordType == 2) {
+            if (read_directory_start() == -1) {
+                error("unable to read directory start at depth %d", depth);
+                return -1;
+            }
 
-    if (read_directory_end(depth) == -1) {
-        error("unable to read directory end at depth %d", depth);
-        return -1;
+            debug("successfully read a start of directory at depth %d", depth);
+
+            // if (path_pop() == -1) {
+            //     error("unable to pop from path");
+            //     return -1;
+            // }
+
+            continue;
+        }
+
+        if (recordType == 4) {
+            debug("successfully read a directory entry");
+
+            Metadata m;
+
+            if ((m = read_dir_entry_data()).error == -1) {
+                error("unable to read record metadata");
+                return -1;
+            }
+
+            append_string_to_existing(path_buf, "/");
+            path_length = string_length(path_buf);
+
+            if (read_stdin_append_string(path_buf, path_length, m.size) == -1) {
+                error("unable to read name from stdin");
+                return -1;
+            } else {
+                debug("CURRENT PATH BUF IS %s", path_buf);
+            }
+
+            path_length = string_length(path_buf);
+            debug("the path_buf is now: %s", path_buf);
+
+            if (S_ISREG(m.permissions)) {
+                debug("its a file!");
+
+                if (access(path_buf, F_OK) != -1) {
+                    // file exists, check if -c is set; if it is, then overwrite. otherwise return -1;
+                } else {
+                    debug("file at %s not found. should attempt to create it.", path_buf);
+
+                    if (read_file_data_make_file(depth, path_buf) == -1) {
+                        return -1;
+                    }
+
+                    //done with current file/dir, pop it off
+                    if (path_pop() == -1) {
+                        error("unable to pop from path");
+
+                        return -1;
+                    }
+
+                    continue;
+                }
+            } else if (S_ISDIR(m.permissions)) {
+                DIR* dir = opendir(path_buf);
+
+                if (dir) {
+                    // directory exists, check if -c is set; ...
+                    closedir(dir);
+                } else if (ENOENT == errno) {
+                    debug("_____ DIRECTORY not found, should attempt to create it.");
+
+                    if (read_dir_name_create_dir(path_buf) == -1) {
+                        return -1;
+                    }
+
+                    return deserialize_directory(depth + 1);
+                } else {
+                    error("opendir failed for unknown reason");
+
+                    return -1;
+                }
+            } else {
+                error("unknown type from permissions %d, remaining size: %lu", m.permissions, m.size);
+
+                return -1;
+            }
+        } else if (recordType == 3) {
+            if (read_directory_end() == -1) {
+                error("unable to read directory end at depth %d", depth);
+
+                return -1;
+            }
+
+            if (path_pop() == -1) {
+                error("unable to pop from path");
+
+                return -1;
+            }
+
+            if (depth == 1) {
+                debug("read the final END_OF_DIRECTORY record");
+
+                return 0;
+            }
+
+            return deserialize_directory(depth - 1);
+
+            // TODO:
+            // apply CHMOD here?
+            // pop path?
+        } else {
+            error("record type not expected %d", recordType);
+
+            return -1;
+        }
     }
 
     return -1;

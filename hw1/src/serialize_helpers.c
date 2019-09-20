@@ -119,7 +119,8 @@ int write_record_file_data(uint32_t depth, char *filepath, off_t size) {
     if (write_magic_bytes() == -1) return -1;
     if (write_type(FILE_DATA) == -1) return -1;
     if (write_depth((uint32_t) depth) == -1) return -1;
-    if (write_size((uint64_t) HEADER_SIZE) == -1) return -1; // size
+    int totalSize = size + HEADER_SIZE;
+    if (write_size((uint64_t) totalSize) == -1) return -1; // size
 
     FILE *f = fopen(filepath, "r");
     if (f == NULL) return -1;

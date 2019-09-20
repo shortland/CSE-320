@@ -20,12 +20,21 @@
 int main(int argc, char **argv) {
     if (validargs(argc, argv) == -1) {
         debug("validargs returned error");
+
+        fflush(stdout);
+
+        // This function exits() with the given exit status
         USAGE(*argv, EXIT_FAILURE);
     }
 
     debug("Options: 0x%x", global_options);
+
     if (global_options & 1) {
         debug("show usage success");
+
+        fflush(stdout);
+
+        // This function exits() with the given exit status
         USAGE(*argv, EXIT_SUCCESS);
     }
 
@@ -37,6 +46,9 @@ int main(int argc, char **argv) {
 
         if (path_init("./") == -1) {
             error("path_init() error");
+
+            fflush(stdout);
+
             return EXIT_FAILURE;
         }
     } else {
@@ -44,6 +56,9 @@ int main(int argc, char **argv) {
 
         if (path_init(name_buf) == -1) {
             error("path_init() error");
+
+            fflush(stdout);
+
             return EXIT_FAILURE;
         }
     }
@@ -56,10 +71,12 @@ int main(int argc, char **argv) {
 
         if (serialize() == -1) {
             error("serialize failed");
+
+            fflush(stdout);
+
             return EXIT_FAILURE;
         } else {
             debug("serialized successfully");
-            fflush(stdout);
         }
     }
 
@@ -71,12 +88,16 @@ int main(int argc, char **argv) {
 
         if (deserialize() == -1) {
             error("deserialize failed");
+
+            fflush(stdout);
+
             return EXIT_FAILURE;
         } else {
             debug("deserialized successfully");
-            fflush(stdout);
         }
     }
+
+    fflush(stdout);
 
     return EXIT_SUCCESS;
 }

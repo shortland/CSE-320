@@ -1,8 +1,8 @@
 image: hwrunner:latest
 variables:
     GIT_SSL_NO_VERIFY: "true"
-    EXEC: transplant
-    HW_DIR: hw1
+    EXEC: rolo
+    HW_DIR: hw2
 before_script:
     - make clean all -C ${HW_DIR}
 stages:

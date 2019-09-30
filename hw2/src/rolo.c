@@ -35,42 +35,42 @@ char *rolo_emalloc (size) int size;
 /* error handling memory allocator */
 
 {
-  char *rval;        
-  if (0 == (rval = malloc(size))) {        
+  char *rval;
+  if (0 == (rval = malloc(size))) {
      fprintf(stderr,"Fatal error:  out of memory\n");
      save_and_exit(-1);
   }
   return(rval);
-}  
+}
 
-        
+
 char *copystr (s) char *s;
 
 /* memory allocating string copy routine */
 
 
 {
- char *copy;        
+ char *copy;
  if (s == 0) return(0);
  copy = rolo_emalloc(strlen(s));
  strcpy(copy,s);
  return(copy);
 }
 
- 
+
 char *timestring ()
 
 /* returns a string timestamp */
 
 {
-  char *s;        
+  char *s;
   long timeval;
   time(&timeval);
-  s = ctime(&timeval);  
+  s = ctime(&timeval);
   s[strlen(s) - 1] = '\0';
   return(copystr(s));
-}  
-  
+}
+
 
 user_interrupt ()
 
@@ -79,8 +79,8 @@ user_interrupt ()
 {
   unlink(homedir(ROLOLOCK));
   fprintf(stderr,"\nAborting rolodex, no changes since last save recorded\n");
-  exit(-1);  
-}  
+  exit(-1);
+}
 
 
 user_eof ()
@@ -88,17 +88,17 @@ user_eof ()
 /* if the user hits C-D */
 
 {
-  unlink(homedir(ROLOLOCK));        
+  unlink(homedir(ROLOLOCK));
   fprintf(stderr,"\nUnexpected EOF on terminal. Saving rolodex and exiting\n");
-  save_and_exit(-1);        
+  save_and_exit(-1);
 }
 
 
 roloexit (rval) int rval;
 {
-  if (rololocked) unlink(homedir(ROLOLOCK));        
+  if (rololocked) unlink(homedir(ROLOLOCK));
   exit(rval);
-}  
+}
 
 
 save_to_disk ()
@@ -107,10 +107,10 @@ save_to_disk ()
 /* a copy of the new rolodex (just for safety) */
 
 {
-  FILE *tempfp,*copyfp;        
+  FILE *tempfp,*copyfp;
   char d1[DIRPATHLEN], d2[DIRPATHLEN];
   int r;
-        
+
   tempfp = fopen(homedir(ROLOTEMP),"w");
   copyfp = fopen(homedir(ROLOCOPY),"w");
   if (tempfp == NULL || copyfp == NULL) {
@@ -130,12 +130,12 @@ save_to_disk ()
   sleep(1);
   changed = 0;
 }
-  
+
 
 save_and_exit (rval) int rval;
 {
-  if (changed) save_to_disk();        
-  roloexit(rval);        
+  if (changed) save_to_disk();
+  roloexit(rval);
 }
 
 
@@ -146,7 +146,7 @@ char *home_directory (name) char *name;
   struct passwd *pwentry;
   if (0 == (pwentry = getpwnam(name))) return("");
   return(pwentry -> pw_dir);
-}        
+}
 
 
 char *homedir (filename) char *filename;
@@ -167,20 +167,20 @@ char *libdir (filename) char *filename;
 /* the string must be copied if it is to be saved! */
 
 {
-  nbuffconcat(filebuf,3,ROLOLIB,"/",filename);        
-  return(filebuf);        
+  nbuffconcat(filebuf,3,ROLOLIB,"/",filename);
+  return(filebuf);
 }
 
 
-rolo_only_to_read () 
+rolo_only_to_read ()
 {
   return(option_present(SUMMARYFLAG) || n_non_option_args() > 0);
 }
 
 
-locked_action () 
+locked_action ()
 {
-  if (option_present(OTHERUSERFLAG)) {        
+  if (option_present(OTHERUSERFLAG)) {
      fprintf(stderr,"Someone else is modifying that rolodex, sorry\n");
      exit(-1);
   }
@@ -188,24 +188,24 @@ locked_action ()
      cathelpfile(libdir("lockinfo"),"locked rolodex",0);
      exit(-1);
   }
-}  
-  
+}
+
 
 rolo_main (argc,argv) int argc; char *argv[];
 
 {
     int fd,in_use,read_only,rolofd;
-    Bool not_own_rolodex;        
+    Bool not_own_rolodex;
     char *user;
     FILE *tempfp;
-    
+
     clearinit();
     clear_the_screen();
-    
+
     /* parse the options and arguments, if any */
-    
+
     switch (get_args(argc,argv,T,T)) {
-        case ARG_ERROR : 
+        case ARG_ERROR :
           roloexit(-1);
         case NO_ARGS :
           break;
@@ -215,24 +215,24 @@ rolo_main (argc,argv) int argc; char *argv[];
                 roloexit(-1);
           }
     }
-    
+
     /* find the directory in which the rolodex file we want to use is */
-    
-    not_own_rolodex = option_present(OTHERUSERFLAG);        
+
+    not_own_rolodex = option_present(OTHERUSERFLAG);
     if (not_own_rolodex) {
-       if (NIL == (user = option_arg(OTHERUSERFLAG,1)) || 
+       if (NIL == (user = option_arg(OTHERUSERFLAG,1)) ||
            n_option_args(OTHERUSERFLAG) != 1) {
           fprintf(stderr,"Illegal syntax using -u option\nusage: %s\n",USAGE);
           roloexit(-1);
        }
-    }        
+    }
     else {
        if (0 == (user = getenv("HOME"))) {
           fprintf(stderr,"Cant find your home directory, no HOME\n");
           roloexit(-1);
        }
     }
-    
+
     if (not_own_rolodex) {
        strcpy(rolodir,home_directory(user));
        if (*rolodir == '\0') {
@@ -241,56 +241,56 @@ rolo_main (argc,argv) int argc; char *argv[];
        }
     }
     else strcpy(rolodir,user);
-    
+
     /* is the rolodex readable? */
-    
+
     if (0 != access(homedir(ROLODATA),R_OK)) {
-        
+
        /* No.  if it exists and we cant read it, that's an error */
-        
-       if (0 == access(homedir(ROLODATA),F_OK)) { 
+
+       if (0 == access(homedir(ROLODATA),F_OK)) {
           fprintf(stderr,"Cant access rolodex data file to read\n");
           roloexit(-1);
        }
-       
+
        /* if it doesn't exist, should we create one? */
-       
+
        if (option_present(OTHERUSERFLAG)) {
           fprintf(stderr,"No rolodex file belonging to %s found\n",user);
           roloexit(-1);
        }
-       
+
        /* try to create it */
-       
+
        if (-1 == (fd = creat(homedir(ROLODATA),0644))) {
           fprintf(stderr,"couldnt create rolodex in your home directory\n");
           roloexit(-1);
        }
-       
+
        else {
           close(fd);
           fprintf(stderr,"Creating empty rolodex...\n");
        }
 
     }
-    
+
     /* see if someone else is using it */
-    
+
     in_use = (0 == access(homedir(ROLOLOCK),F_OK));
-    
+
     /* are we going to access the rolodex only for reading? */
-    
+
     if (!(read_only = rolo_only_to_read())) {
-    
+
        /* No.  Make sure no one else has it locked. */
-        
+
        if (in_use) {
           locked_action();
        }
-        
+
        /* create a lock file.  Catch interrupts so that we can remove */
        /* the lock file if the user decides to abort */
-       
+
        if (!option_present(NOLOCKFLAG)) {
           if ((fd = open(homedir(ROLOLOCK),O_EXCL|O_CREAT,00200|00400)) < 0) {
              fprintf(stderr,"unable to create lock file...\n");
@@ -298,35 +298,35 @@ rolo_main (argc,argv) int argc; char *argv[];
 	  }
           rololocked = 1;
           close(fd);
-          signal(SIGINT,user_interrupt);        
+          signal(SIGINT,user_interrupt);
        }
-        
+
        /* open a temporary file for writing changes to make sure we can */
        /* write into the directory */
-       
+
        /* when the rolodex is saved, the old rolodex is moved to */
        /* a '~' file, the temporary is made to be the new rolodex, */
        /* and a copy of the new rolodex is made */
-       
+
        if (NULL == (tempfp = fopen(homedir(ROLOTEMP),"w"))) {
            fprintf(stderr,"Can't open temporary file to write to\n");
            roloexit(-1);
-       }        
+       }
        fclose(tempfp);
-    
+
     }
-       
+
     allocate_memory_chunk(CHUNKSIZE);
-    
+
     if (NULL == (rolofd = open(homedir(ROLODATA),O_RDONLY))) {
         fprintf(stderr,"Can't open rolodex data file to read\n");
         roloexit(-1);
     }
-    
+
     /* read in the rolodex from disk */
     /* It should never be out of order since it is written to disk ordered */
     /* but just in case... */
-    
+
     if (!read_only) printf("Reading in rolodex from %s\n",homedir(ROLODATA));
     read_rolodex(rolofd);
     close(rolofd);
@@ -337,28 +337,28 @@ rolo_main (argc,argv) int argc; char *argv[];
        fprintf(stderr,"Saving reordered rolodex to disk...\n");
        save_to_disk();
     }
-       
+
     /* the following routines live in 'options.c' */
-    
+
     /* -s option.  Prints a short listing of people and phone numbers to */
     /* standard output */
-    
+
     if (option_present(SUMMARYFLAG)) {
         print_short();
         exit(0);
     }
-    
+
     /* rolo <name1> <name2> ... */
     /* print out info about people whose names contain any of the arguments */
-    
+
     if (n_non_option_args() > 0) {
        print_people();
        exit(0);
     }
-    
+
     /* regular rolodex program */
-    
+
     interactive_rolo();
     exit(0);
-    
-}    
+
+}

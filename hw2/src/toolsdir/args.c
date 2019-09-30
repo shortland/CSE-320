@@ -7,7 +7,7 @@
 /***************************************************************************/
 /***************************************************************************/
 
-           /*****     COMMAND LINE ARGUMENT PARSER    *****/
+/*****     COMMAND LINE ARGUMENT PARSER    *****/
 
 /***************************************************************************/
 /***************************************************************************/
@@ -44,251 +44,298 @@
 /* set_option()         turns on option */
 /* error_message()      prints out an illegal syntax error message to stderr */
 
-
-int option_to_index (char achar) {
-  if (isupper(achar)) return(achar - 'A');
-  if (islower(achar)) return(achar - 'a' + 26);
-  return(NO_OPTION);
+int option_to_index(char achar)
+{
+    if (isupper(achar))
+        return (achar - 'A');
+    if (islower(achar))
+        return (achar - 'a' + 26);
+    return (NO_OPTION);
 }
 
-char index_to_option (int index) {
-  if (index < 26) return('A' + index);
-  return('a' + index - 26);
+char index_to_option(int index)
+{
+    if (index < 26)
+        return ('A' + index);
+    return ('a' + index - 26);
 }
-
 
 /* the command line arguments are parsed into Cmd when get_args returns */
 /* successfully */
 static Ptr_Cmd_Line Cmd = NIL;
 
-int get_args (int argc, char **argv, Bool dup_error, Bool print_msg) {
-  /* Returns one of NO_ARGS, ARG_ERROR, or ARGS_PRESENT */
+int get_args(int argc, char **argv, Bool dup_error, Bool print_msg)
+{
+    /* Returns one of NO_ARGS, ARG_ERROR, or ARGS_PRESENT */
 
-  int i,j,dash_index;
-  Ptr_Cmd_Arg arg,last = NIL;
-  char echar, *optr;
+    int i, j, dash_index;
+    Ptr_Cmd_Arg arg, last = NIL;
+    char echar, *optr;
 
-  Cmd = (Ptr_Cmd_Line) malloc(sizeof(Cmd_Line));
-  Cmd -> non_dash_arg_list = NIL;
-  for (j = 0; j < MAX_OPTIONS; j++) (Cmd -> dash_options)[j] = F;
+    Cmd = (Ptr_Cmd_Line)malloc(sizeof(Cmd_Line));
+    Cmd->non_dash_arg_list = NIL;
+    for (j = 0; j < MAX_OPTIONS; j++)
+        (Cmd->dash_options)[j] = F;
 
-  if (argc == 1) return(NO_ARGS);
+    if (argc == 1)
+        return (NO_ARGS);
 
-  i = 0;
-  dash_index = NO_OPTION;
+    i = 0;
+    dash_index = NO_OPTION;
 
-  while (++i < argc) {
+    while (++i < argc)
+    {
 
         /* parse arguments (i.e., anything not beginning with '-' */
 
-        if (argv[i][0] != '-') {
-                arg = (Ptr_Cmd_Arg) malloc(sizeof(Cmd_Arg));
-                arg -> option = argv[i];
-                arg -> option_index = dash_index;
-                arg -> next = NIL;
-                if (last == NIL) {
-                        Cmd -> non_dash_arg_list = arg;
-                        last = arg;
-                }
-                else {
-                        last -> next = arg;
-                        last = arg;
-                }
-                continue;
+        if (argv[i][0] != '-')
+        {
+            arg = (Ptr_Cmd_Arg)malloc(sizeof(Cmd_Arg));
+            arg->option = argv[i];
+            arg->option_index = dash_index;
+            arg->next = NIL;
+            if (last == NIL)
+            {
+                Cmd->non_dash_arg_list = arg;
+                last = arg;
+            }
+            else
+            {
+                last->next = arg;
+                last = arg;
+            }
+            continue;
         }
 
         /* parse options. '-' by itself is illegal syntax */
 
-        if (strlen(argv[i]) < 2) {
-                echar = '-';
-                goto parse_error;
+        if (strlen(argv[i]) < 2)
+        {
+            echar = '-';
+            goto parse_error;
         }
         optr = argv[i];
         optr++;
-        while (*optr != '\0') {
-                if (NO_OPTION == (dash_index = option_to_index(*optr))) {
-                        echar = *optr;
-                        goto parse_error;
-                };
-                if ((Cmd -> dash_options)[dash_index] && dup_error) {
-                        echar = *optr;
-                        goto duplicate_error;
-                }
-                (Cmd -> dash_options)[dash_index] = T;
-                optr++;
+        while (*optr != '\0')
+        {
+            if (NO_OPTION == (dash_index = option_to_index(*optr)))
+            {
+                echar = *optr;
+                goto parse_error;
+            };
+            if ((Cmd->dash_options)[dash_index] && dup_error)
+            {
+                echar = *optr;
+                goto duplicate_error;
+            }
+            (Cmd->dash_options)[dash_index] = T;
+            optr++;
         }
+    }
 
-  }
+    return (ARGS_PRESENT);
 
-  return(ARGS_PRESENT);
+parse_error:
 
-  parse_error :
+    if (print_msg)
+        fprintf(stderr, "illegal option: %c\n", echar);
+    return (ARG_ERROR);
 
-  if (print_msg) fprintf(stderr,"illegal option: %c\n",echar);
-  return(ARG_ERROR);
+duplicate_error:
 
-  duplicate_error:
-
-  if (print_msg) fprintf(stderr,"duplicate option: %c\n",echar);
-  return(ARG_ERROR);
-
+    if (print_msg)
+        fprintf(stderr, "duplicate option: %c\n", echar);
+    return (ARG_ERROR);
 }
 
-
-Bool option_present (char achar) {
-  return((Cmd -> dash_options)[option_to_index(achar)]);
+Bool option_present(char achar)
+{
+    return ((Cmd->dash_options)[option_to_index(achar)]);
 }
 
-Bool any_option_present() {
-  int j;
-  for (j = 0; j < MAX_OPTIONS; j++) {
-      if ((Cmd -> dash_options)[j]) return(T);
-  }
-  return(F);
+Bool any_option_present()
+{
+    int j;
+    for (j = 0; j < MAX_OPTIONS; j++)
+    {
+        if ((Cmd->dash_options)[j])
+            return (T);
+    }
+    return (F);
 }
 
-char *get_option_arg(int i, int n) {
-  /* get the nth option associated with the option whose index is 'i' */
+char *get_option_arg(int i, int n)
+{
+    /* get the nth option associated with the option whose index is 'i' */
 
-  int count;
-  Ptr_Cmd_Arg args;
-  args = Cmd -> non_dash_arg_list;
-  count = 0;
-  while (args != NIL) {
-        if (i == args -> option_index && ++count == n) {
-                return(args -> option);
+    int count;
+    Ptr_Cmd_Arg args;
+    args = Cmd->non_dash_arg_list;
+    count = 0;
+    while (args != NIL)
+    {
+        if (i == args->option_index && ++count == n)
+        {
+            return (args->option);
         }
-        args = args -> next;
-  }
-  return(NIL);
+        args = args->next;
+    }
+    return (NIL);
 }
 
-char *option_arg(char achar, int n) {
-  return(get_option_arg(option_to_index(achar),n));
+char *option_arg(char achar, int n)
+{
+    return (get_option_arg(option_to_index(achar), n));
 }
 
-char *non_option_arg(int n) {
-  return(get_option_arg(NO_OPTION,n));
+char *non_option_arg(int n)
+{
+    return (get_option_arg(NO_OPTION, n));
 }
 
-char *non_dash_arg(int n) {
-  int count = 0;
-  Ptr_Cmd_Arg arg;
-  arg = Cmd -> non_dash_arg_list;
-  while (arg != NIL) {
-        if (++count == n) return(arg -> option);
-        arg = arg -> next;
-  }
-  return(NIL);
+char *non_dash_arg(int n)
+{
+    int count = 0;
+    Ptr_Cmd_Arg arg;
+    arg = Cmd->non_dash_arg_list;
+    while (arg != NIL)
+    {
+        if (++count == n)
+            return (arg->option);
+        arg = arg->next;
+    }
+    return (NIL);
 }
 
-void print_args() {
-  /* debugging routine which prints out the Cmd structure in readable form */
-  int j, i, n;
-  char *option, ochar;
+void print_args()
+{
+    /* debugging routine which prints out the Cmd structure in readable form */
+    int j, i, n;
+    char *option, ochar;
 
-  if (Cmd == NIL) {
+    if (Cmd == NIL)
+    {
         printf("\n\nNo arguments\n\n");
         return;
-  }
+    }
 
-  printf("\n\narguments not associated with options: ");
-  n = 1;
-  while (T) {
-        if (NIL == (option = non_option_arg(n++))) break;
-        printf("%s ",option);
-  }
-  printf("\n");
+    printf("\n\narguments not associated with options: ");
+    n = 1;
+    while (T)
+    {
+        if (NIL == (option = non_option_arg(n++)))
+            break;
+        printf("%s ", option);
+    }
+    printf("\n");
 
-  printf("\n\noptions and their arguments:\n\n");
-  for (j = 0; j < MAX_OPTIONS; j++) {
-      ochar = index_to_option(j);
-      if (option_present(ochar)) {
-         printf("%c : \t",ochar);
-         i = 1;
-         while (T) {
-           if (NIL == (option = option_arg(ochar,i++))) break;
-           printf("%s ",option);
-         }
-         printf("     \t(# is %d)",n_option_args(ochar));
-         printf("\n");
-      }
-  }
+    printf("\n\noptions and their arguments:\n\n");
+    for (j = 0; j < MAX_OPTIONS; j++)
+    {
+        ochar = index_to_option(j);
+        if (option_present(ochar))
+        {
+            printf("%c : \t", ochar);
+            i = 1;
+            while (T)
+            {
+                if (NIL == (option = option_arg(ochar, i++)))
+                    break;
+                printf("%s ", option);
+            }
+            printf("     \t(# is %d)", n_option_args(ochar));
+            printf("\n");
+        }
+    }
 
-  printf("\nnumber of non-dashed args is: %d\n",n_non_dash_args());
-  printf("number of non-option args is  : %d\n",n_non_option_args());
-
+    printf("\nnumber of non-dashed args is: %d\n", n_non_dash_args());
+    printf("number of non-option args is  : %d\n", n_non_option_args());
 }
-
 
 #define ALL -1
 #define NON_OPTION -2
 
-int arg_counter(int type) {
-  /* general routine which counts arguments */
-  /* if type isn't ALL or NON_OPTION then type is an index of an option */
+int arg_counter(int type)
+{
+    /* general routine which counts arguments */
+    /* if type isn't ALL or NON_OPTION then type is an index of an option */
 
-  int index,count;
-  Ptr_Cmd_Arg arg;
-  arg = Cmd -> non_dash_arg_list;
-  count = 0;
-  index = (type == NON_OPTION) ? NO_OPTION : type;
-  while (arg != NIL) {
-        if (type == ALL) {
-                count++;
+    int index, count;
+    Ptr_Cmd_Arg arg;
+    arg = Cmd->non_dash_arg_list;
+    count = 0;
+    index = (type == NON_OPTION) ? NO_OPTION : type;
+    while (arg != NIL)
+    {
+        if (type == ALL)
+        {
+            count++;
         }
-        else if (arg -> option_index == index) count++;
-        arg = arg -> next;
-  }
-  return(count);
+        else if (arg->option_index == index)
+            count++;
+        arg = arg->next;
+    }
+    return (count);
 }
 
-int n_option_args(char achar) {
-  return(arg_counter(option_to_index(achar)));
+int n_option_args(char achar)
+{
+    return (arg_counter(option_to_index(achar)));
 }
 
-int n_non_option_args() {
-  return(arg_counter(NON_OPTION));
+int n_non_option_args()
+{
+    return (arg_counter(NON_OPTION));
 }
 
-int n_non_dash_args() {
-  return(arg_counter(ALL));
+int n_non_dash_args()
+{
+    return (arg_counter(ALL));
 }
 
-void set_option(char achar) {
-  (Cmd -> dash_options)[option_to_index(achar)] = T;
+void set_option(char achar)
+{
+    (Cmd->dash_options)[option_to_index(achar)] = T;
 }
 
-void error_message(char *progname, char **argv, int i, char *usage) {
-  fprintf(stderr,"\nillegal argument to %s : %s\n",progname,argv[i]);
-  if (usage) fprintf(stderr,"%s\n",usage);
+void error_message(char *progname, char **argv, int i, char *usage)
+{
+    fprintf(stderr, "\nillegal argument to %s : %s\n", progname, argv[i]);
+    if (usage)
+        fprintf(stderr, "%s\n", usage);
 }
 
-
-Bool check_option_args(char achar, int themin, int themax) {
-  int n;
-  if (themin > themax) return(T);
-  n = n_option_args(achar);
-  return ((Bool) (n >= themin && n <= themax));
+Bool check_option_args(char achar, int themin, int themax)
+{
+    int n;
+    if (themin > themax)
+        return (T);
+    n = n_option_args(achar);
+    return ((Bool)(n >= themin && n <= themax));
 }
 
+char legal_options(char *legalstring)
+{
+    /* are all the options the user specified characters in legalstring? */
+    /* returns ALL_LEGAL if so, otherwise the first option not in the string */
 
-char legal_options(char *legalstring) {
-  /* are all the options the user specified characters in legalstring? */
-  /* returns ALL_LEGAL if so, otherwise the first option not in the string */
-
-  int j;
-  char option, *s;
-  for (j = 0; j < MAX_OPTIONS; j++) {
-      if ((Cmd -> dash_options)[j]) {
-         option = index_to_option(j);
-         s = legalstring;
-         while (T) {
-               if (*s == '\0') return(option);
-               if (*s == option) break;
-               s++;
-         }
-      }
-  }
-  return(ALL_LEGAL);
+    int j;
+    char option, *s;
+    for (j = 0; j < MAX_OPTIONS; j++)
+    {
+        if ((Cmd->dash_options)[j])
+        {
+            option = index_to_option(j);
+            s = legalstring;
+            while (T)
+            {
+                if (*s == '\0')
+                    return (option);
+                if (*s == option)
+                    break;
+                s++;
+            }
+        }
+    }
+    return (ALL_LEGAL);
 }

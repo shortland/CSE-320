@@ -3,13 +3,12 @@
 #define MENU_EOF -1
 #define MENU_MATCH 0
 #define MENU_AMBIGUOUS 1
-#define MENU_NO_MATCH 2        
+#define MENU_NO_MATCH 2
 #define MENU_ERROR 3
 #define MENU_RETURN 4
 
 #define MAX_MENU_OPTIONS 20
 #define MAX_MENU_RESPONSE_LENGTH 255
-
 
 extern int menu_match();
 
@@ -64,7 +63,6 @@ extern int menu_match();
     
 */
 
-
 #define MENU_NO 0
 #define MENU_YES 1
 #define MENU_HELP 2
@@ -85,12 +83,11 @@ extern int menu_yes_no();
 
 */
 
-
 #define DEFAULT_YES 0
 #define DEFAULT_NO 1
 #define NO_DEFAULT 2
 
-extern int menu_yes_no_abort_or_help ();
+extern int menu_yes_no_abort_or_help();
 
 /*  menu_yes_no_abort_or_help (prompt,abortstring,helpallowed,return_for_yes)
 
@@ -104,9 +101,9 @@ extern int menu_yes_no_abort_or_help ();
     If it is DEFAULT_YES, hitting return is like typing yes.
     If it is any other value, hitting return is like typing no.
 
-*/    
+*/
 
-extern int menu_data_help_or_abort ();
+extern int menu_data_help_or_abort();
 
 /*
 
@@ -119,10 +116,9 @@ extern int menu_data_help_or_abort (prompt,abortstring,ptr_response)
   returned in the user types in "?" or any initial substring of "Help"
   (case independently).
   
-*/  
-  
+*/
 
-extern int menu_number_help_or_abort ();
+extern int menu_number_help_or_abort();
 
 /*
 menu_number_help_or_abort (prompt,abortstring,low,high,ptr_ival)

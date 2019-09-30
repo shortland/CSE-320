@@ -17,44 +17,44 @@ extern char *Field_Names[];
 
 /* A Rolodex entry */
 
-typedef struct {
+typedef struct
+{
 
     char *basicfields[N_BASIC_FIELDS];
     int n_others;
     char **other_fields;
 
-  } Rolo_Entry, *Ptr_Rolo_Entry;
+} Rolo_Entry, *Ptr_Rolo_Entry;
 
+#define get_basic_rolo_field(n, x) (((x)->basicfields)[(n)])
+#define get_n_others(x) ((x)->n_others)
+#define get_other_field(n, x) (((x)->other_fields)[n])
 
-#define get_basic_rolo_field(n,x) (((x) -> basicfields)[(n)])
-#define get_n_others(x) ((x) -> n_others)
-#define get_other_field(n,x) (((x) -> other_fields)[n])
+#define set_basic_rolo_field(n, x, s) (((x)->basicfields[(n)]) = (s))
+#define set_n_others(x, n) (((x)->n_others) = (n))
+#define incr_n_others(x) (((x)->n_others)++)
+#define set_other_field(n, x, s) ((((x)->other_fields)[n]) = (s))
 
-#define set_basic_rolo_field(n,x,s) (((x) -> basicfields[(n)]) = (s))
-#define set_n_others(x,n) (((x) -> n_others) = (n))
-#define incr_n_others(x) (((x) -> n_others)++)
-#define set_other_field(n,x,s) ((((x) -> other_fields)[n]) = (s))
-
-typedef struct link {
+typedef struct link
+{
 
     Ptr_Rolo_Entry entry;
     int matched;
     struct link *prev;
     struct link *next;
 
-  } Rolo_List, *Ptr_Rolo_List;
+} Rolo_List, *Ptr_Rolo_List;
 
+#define get_next_link(x) ((x)->next)
+#define get_prev_link(x) ((x)->prev)
+#define get_entry(x) ((x)->entry)
+#define get_matched(x) ((x)->matched)
 
-#define get_next_link(x) ((x) -> next)
-#define get_prev_link(x) ((x) -> prev)
-#define get_entry(x)     ((x) -> entry)
-#define get_matched(x) ((x) -> matched)
-
-#define set_next_link(x,y) (((x) -> next) = (y))
-#define set_prev_link(x,y) (((x) -> prev) = (y))
-#define set_entry(x,y) (((x) -> entry) = (y))
-#define set_matched(x) (((x) -> matched) = 1)
-#define unset_matched(x) (((x) -> matched) = 0);
+#define set_next_link(x, y) (((x)->next) = (y))
+#define set_prev_link(x, y) (((x)->prev) = (y))
+#define set_entry(x, y) (((x)->entry) = (y))
+#define set_matched(x) (((x)->matched) = 1)
+#define unset_matched(x) (((x)->matched) = 0);
 
 extern Ptr_Rolo_List Begin_Rlist;
 extern Ptr_Rolo_List End_Rlist;

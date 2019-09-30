@@ -1,5 +1,6 @@
 #include <sys/file.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <sgtty.h>
 #include <signal.h>
@@ -19,6 +20,19 @@
 #include "rolofiles.h"
 #include "rolodefs.h"
 #include "datadef.h"
+
+/**
+ * NOTE: Mine
+ */
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+
+#include "clear.h"
+#include "rolo.h"
+#include "io.h"
+#include "rlist.h"
+#include "options.h"
 
 
 static char rolodir[DIRPATHLEN];        /* directory where rolo data is */
@@ -72,7 +86,7 @@ char *timestring ()
 }
 
 
-user_interrupt ()
+void user_interrupt ()
 
 /* if the user hits C-C (we assume he does it deliberately) */
 
@@ -83,7 +97,7 @@ user_interrupt ()
 }
 
 
-user_eof ()
+void user_eof ()
 
 /* if the user hits C-D */
 
@@ -94,14 +108,14 @@ user_eof ()
 }
 
 
-roloexit (rval) int rval;
+void roloexit (rval) int rval;
 {
   if (rololocked) unlink(homedir(ROLOLOCK));
   exit(rval);
 }
 
 
-save_to_disk ()
+void save_to_disk ()
 
 /* move the old rolodex to a backup, and write out the new rolodex and */
 /* a copy of the new rolodex (just for safety) */
@@ -109,7 +123,11 @@ save_to_disk ()
 {
   FILE *tempfp,*copyfp;
   char d1[DIRPATHLEN], d2[DIRPATHLEN];
-  int r;
+
+  /**
+   * TODO: Commented out b/c unused
+   */
+  //int r;
 
   tempfp = fopen(homedir(ROLOTEMP),"w");
   copyfp = fopen(homedir(ROLOCOPY),"w");
@@ -132,8 +150,7 @@ save_to_disk ()
 }
 
 
-save_and_exit (rval) int rval;
-{
+void save_and_exit(int rval) {
   if (changed) save_to_disk();
   roloexit(rval);
 }
@@ -172,14 +189,12 @@ char *libdir (filename) char *filename;
 }
 
 
-rolo_only_to_read ()
-{
-  return(option_present(SUMMARYFLAG) || n_non_option_args() > 0);
+int rolo_only_to_read() {
+    return (option_present(SUMMARYFLAG) || n_non_option_args() > 0);
 }
 
 
-locked_action ()
-{
+void locked_action() {
   if (option_present(OTHERUSERFLAG)) {
      fprintf(stderr,"Someone else is modifying that rolodex, sorry\n");
      exit(-1);
@@ -191,10 +206,8 @@ locked_action ()
 }
 
 
-rolo_main (argc,argv) int argc; char *argv[];
-
-{
-    int fd,in_use,read_only,rolofd;
+void rolo_main(int argc, char *argv[]) {
+    int fd, in_use, read_only, rolofd;
     Bool not_own_rolodex;
     char *user;
     FILE *tempfp;
@@ -203,17 +216,16 @@ rolo_main (argc,argv) int argc; char *argv[];
     clear_the_screen();
 
     /* parse the options and arguments, if any */
-
-    switch (get_args(argc,argv,T,T)) {
-        case ARG_ERROR :
-          roloexit(-1);
-        case NO_ARGS :
-          break;
-        case ARGS_PRESENT :
-          if (ALL_LEGAL != legal_options(LEGAL_OPTIONS)) {
+    switch (get_args(argc, argv, T, T)) {
+        case ARG_ERROR:
+            roloexit(-1);
+        case NO_ARGS:
+            break;
+        case ARGS_PRESENT:
+            if (ALL_LEGAL != legal_options(LEGAL_OPTIONS)) {
                 fprintf(stderr,"illegal option\nusage: %s\n",USAGE);
                 roloexit(-1);
-          }
+            }
     }
 
     /* find the directory in which the rolodex file we want to use is */
@@ -318,7 +330,7 @@ rolo_main (argc,argv) int argc; char *argv[];
 
     allocate_memory_chunk(CHUNKSIZE);
 
-    if (NULL == (rolofd = open(homedir(ROLODATA),O_RDONLY))) {
+    if ((rolofd = open(homedir(ROLODATA), O_RDONLY)) == -1) {
         fprintf(stderr,"Can't open rolodex data file to read\n");
         roloexit(-1);
     }

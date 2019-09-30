@@ -6,15 +6,15 @@
 #define N_BASIC_FIELDS 8
 #define OTHER -1
 
-typedef enum Basic_Field {
+/**
+ * TODO: commented out b/c Basic_Field usage is N/A. And idk what name to give this.
+ */
+// typedef enum Basic_Field {
+//     R_NAME = 0, R_WORK_PHONE, R_HOME_PHONE, R_COMPANY, R_WORK_ADDRESS, R_HOME_ADDRESS, R_REMARKS, R_UPDATED
+// };
 
-    R_NAME = 0, R_WORK_PHONE, R_HOME_PHONE, R_COMPANY, R_WORK_ADDRESS,
-    R_HOME_ADDRESS, R_REMARKS, R_UPDATED
+extern char *Field_Names[];
 
-  };    
-    
-extern char *Field_Names[];  
-  
 /* A Rolodex entry */
 
 typedef struct {
@@ -25,11 +25,11 @@ typedef struct {
 
   } Rolo_Entry, *Ptr_Rolo_Entry;
 
-  
+
 #define get_basic_rolo_field(n,x) (((x) -> basicfields)[(n)])
-#define get_n_others(x) ((x) -> n_others)  
+#define get_n_others(x) ((x) -> n_others)
 #define get_other_field(n,x) (((x) -> other_fields)[n])
-  
+
 #define set_basic_rolo_field(n,x,s) (((x) -> basicfields[(n)]) = (s))
 #define set_n_others(x,n) (((x) -> n_others) = (n))
 #define incr_n_others(x) (((x) -> n_others)++)
@@ -67,7 +67,10 @@ extern int reorder_file;
 extern int rololocked;
 
 extern char *rolo_emalloc();
-extern char *malloc();
+/**
+ * TODO: commented out b/c duplicated
+ */
+//extern char *malloc();
 extern Ptr_Rolo_List new_link_with_entry();
 extern char *copystr();
 extern int compare_links();

@@ -1,15 +1,14 @@
 #include "datadef.h"
 
 
-int rlength (rlist) Ptr_Rolo_List rlist;
-{
-  return((rlist == 0) ? 0 : 1 + rlength(get_next_link(rlist)));
-}  
-  
+int rlength(Ptr_Rolo_List rlist) {
+  return ((rlist == 0) ? 0 : 1 + rlength(get_next_link(rlist)));
+}
+
 
 Ptr_Rolo_List new_link_with_entry ()
 {
-  Ptr_Rolo_List newlink;        
+  Ptr_Rolo_List newlink;
   Ptr_Rolo_Entry newentry;
   newlink = (Ptr_Rolo_List) rolo_emalloc(sizeof(Rolo_List));
   unset_matched(newlink);
@@ -23,8 +22,8 @@ Ptr_Rolo_List new_link_with_entry ()
 rolo_insert (link,compare) Ptr_Rolo_List link; int (*compare)();
 
 {
-  Ptr_Rolo_List rptr;        
-        
+  Ptr_Rolo_List rptr;
+
   if (Begin_Rlist == 0) {
      Begin_Rlist = link;
      End_Rlist = link;
@@ -32,7 +31,7 @@ rolo_insert (link,compare) Ptr_Rolo_List link; int (*compare)();
      set_next_link(link,0);
      return;
   }
-  
+
   /* find the element it goes before, alphabetically, and insert it */
 
   rptr = Begin_Rlist;
@@ -40,7 +39,7 @@ rolo_insert (link,compare) Ptr_Rolo_List link; int (*compare)();
     if (1 == (*compare)(rptr,link)) {
        set_prev_link(link,get_prev_link(rptr));
        set_next_link(link,rptr);
-       if (get_prev_link(rptr) != 0) 
+       if (get_prev_link(rptr) != 0)
           set_next_link(get_prev_link(rptr),link);
        else
           Begin_Rlist = link;
@@ -51,7 +50,7 @@ rolo_insert (link,compare) Ptr_Rolo_List link; int (*compare)();
   }
 
   /* it goes at the end */
-  
+
   set_next_link(End_Rlist,link);
   set_prev_link(link,End_Rlist);
   set_next_link(link,0);
@@ -92,18 +91,17 @@ rolo_delete (link) Ptr_Rolo_List link;
 compare_links (l1,l2) Ptr_Rolo_List l1,l2;
 
 {
-  Ptr_Rolo_Entry e1,e2;        
+  Ptr_Rolo_Entry e1,e2;
   char *n1,*n2;
-  e1 = get_entry(l1);        
-  e2 = get_entry(l2);        
+  e1 = get_entry(l1);
+  e2 = get_entry(l2);
   n1 = get_basic_rolo_field((int) R_NAME,e1);
   n2 = get_basic_rolo_field((int) R_NAME,e2);
   return(nocase_compare(n1,strlen(n1),n2,strlen(n2)));
-}  
-  
+}
 
-rolo_reorder ()
-{
+
+void rolo_reorder() {
   Ptr_Rolo_List rptr,oldlink;
   rptr = Begin_Rlist;
   Begin_Rlist = 0;

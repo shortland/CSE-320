@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "basics.h"
-#include "args.h"        
+#include "args.h"
 #include "sys5.h"
 
 /***************************************************************************/
@@ -45,34 +45,25 @@
 /* error_message()      prints out an illegal syntax error message to stderr */
 
 
-int option_to_index (achar) char achar;
-{
+int option_to_index (char achar) {
   if (isupper(achar)) return(achar - 'A');
   if (islower(achar)) return(achar - 'a' + 26);
   return(NO_OPTION);
 }
 
-char index_to_option (index) int index;
-{        
+char index_to_option (int index) {
   if (index < 26) return('A' + index);
   return('a' + index - 26);
-}  
+}
 
 
 /* the command line arguments are parsed into Cmd when get_args returns */
 /* successfully */
-
 static Ptr_Cmd_Line Cmd = NIL;
 
-int get_args (argc, argv, dup_error, print_msg)
-        
+int get_args (int argc, char **argv, Bool dup_error, Bool print_msg) {
   /* Returns one of NO_ARGS, ARG_ERROR, or ARGS_PRESENT */
 
-  int argc;
-  char **argv;
-  Bool print_msg, dup_error;
-
-{
   int i,j,dash_index;
   Ptr_Cmd_Arg arg,last = NIL;
   char echar, *optr;
@@ -85,11 +76,11 @@ int get_args (argc, argv, dup_error, print_msg)
 
   i = 0;
   dash_index = NO_OPTION;
-  
+
   while (++i < argc) {
-        
+
         /* parse arguments (i.e., anything not beginning with '-' */
-        
+
         if (argv[i][0] != '-') {
                 arg = (Ptr_Cmd_Arg) malloc(sizeof(Cmd_Arg));
                 arg -> option = argv[i];
@@ -98,7 +89,7 @@ int get_args (argc, argv, dup_error, print_msg)
                 if (last == NIL) {
                         Cmd -> non_dash_arg_list = arg;
                         last = arg;
-                }                
+                }
                 else {
                         last -> next = arg;
                         last = arg;
@@ -107,11 +98,11 @@ int get_args (argc, argv, dup_error, print_msg)
         }
 
         /* parse options. '-' by itself is illegal syntax */
-        
+
         if (strlen(argv[i]) < 2) {
                 echar = '-';
                 goto parse_error;
-        }        
+        }
         optr = argv[i];
         optr++;
         while (*optr != '\0') {
@@ -141,33 +132,27 @@ int get_args (argc, argv, dup_error, print_msg)
   if (print_msg) fprintf(stderr,"duplicate option: %c\n",echar);
   return(ARG_ERROR);
 
-}  
-
-
-Bool option_present (achar) char achar;
-{        
-  return((Cmd -> dash_options)[option_to_index(achar)]);
 }
 
 
-Bool any_option_present ()
-{
+Bool option_present (char achar) {
+  return((Cmd -> dash_options)[option_to_index(achar)]);
+}
+
+Bool any_option_present() {
   int j;
   for (j = 0; j < MAX_OPTIONS; j++) {
       if ((Cmd -> dash_options)[j]) return(T);
-  }      
+  }
   return(F);
-}  
+}
 
-  
-char * get_option_arg (i,n) int i; int n;
-
+char *get_option_arg(int i, int n) {
   /* get the nth option associated with the option whose index is 'i' */
-        
-{
+
   int count;
-  Ptr_Cmd_Arg args;        
-  args = Cmd -> non_dash_arg_list;  
+  Ptr_Cmd_Arg args;
+  args = Cmd -> non_dash_arg_list;
   count = 0;
   while (args != NIL) {
         if (i == args -> option_index && ++count == n) {
@@ -176,24 +161,17 @@ char * get_option_arg (i,n) int i; int n;
         args = args -> next;
   }
   return(NIL);
-}  
+}
 
-
-char * option_arg (achar,n) char achar; int n;
-{
+char *option_arg(char achar, int n) {
   return(get_option_arg(option_to_index(achar),n));
 }
 
-
-char * non_option_arg (n) int n;
-{
+char *non_option_arg(int n) {
   return(get_option_arg(NO_OPTION,n));
-}  
+}
 
-
-char * non_dash_arg (n) int n;
-
-{
+char *non_dash_arg(int n) {
   int count = 0;
   Ptr_Cmd_Arg arg;
   arg = Cmd -> non_dash_arg_list;
@@ -204,19 +182,16 @@ char * non_dash_arg (n) int n;
   return(NIL);
 }
 
-print_args ()
-
+void print_args() {
   /* debugging routine which prints out the Cmd structure in readable form */
-
-{
-  int j,i,n;
-  char *option,ochar;
+  int j, i, n;
+  char *option, ochar;
 
   if (Cmd == NIL) {
         printf("\n\nNo arguments\n\n");
         return;
-  }        
-  
+  }
+
   printf("\n\narguments not associated with options: ");
   n = 1;
   while (T) {
@@ -242,22 +217,20 @@ print_args ()
 
   printf("\nnumber of non-dashed args is: %d\n",n_non_dash_args());
   printf("number of non-option args is  : %d\n",n_non_option_args());
-  
+
 }
 
 
 #define ALL -1
 #define NON_OPTION -2
 
-int arg_counter (type) int type;
-
+int arg_counter(int type) {
   /* general routine which counts arguments */
   /* if type isn't ALL or NON_OPTION then type is an index of an option */
 
-{
   int index,count;
   Ptr_Cmd_Arg arg;
-  arg = Cmd -> non_dash_arg_list;        
+  arg = Cmd -> non_dash_arg_list;
   count = 0;
   index = (type == NON_OPTION) ? NO_OPTION : type;
   while (arg != NIL) {
@@ -270,39 +243,29 @@ int arg_counter (type) int type;
   return(count);
 }
 
-int n_option_args (achar) char achar;
-{        
+int n_option_args(char achar) {
   return(arg_counter(option_to_index(achar)));
 }
 
-int n_non_option_args ()
-{
+int n_non_option_args() {
   return(arg_counter(NON_OPTION));
 }
 
-int n_non_dash_args ()
-{
+int n_non_dash_args() {
   return(arg_counter(ALL));
 }
 
-
-set_option (achar) char achar;
-{
+void set_option(char achar) {
   (Cmd -> dash_options)[option_to_index(achar)] = T;
 }
 
-
-error_message (progname, argv, i, usage)
-        char *progname; char ** argv; int i; char *usage;
-{
+void error_message(char *progname, char **argv, int i, char *usage) {
   fprintf(stderr,"\nillegal argument to %s : %s\n",progname,argv[i]);
   if (usage) fprintf(stderr,"%s\n",usage);
 }
 
 
-Bool
-check_option_args (achar,themin,themax) char achar; int themin,themax;
-{
+Bool check_option_args(char achar, int themin, int themax) {
   int n;
   if (themin > themax) return(T);
   n = n_option_args(achar);
@@ -310,12 +273,10 @@ check_option_args (achar,themin,themax) char achar; int themin,themax;
 }
 
 
-char legal_options (legalstring) char *legalstring;
-
+char legal_options(char *legalstring) {
   /* are all the options the user specified characters in legalstring? */
   /* returns ALL_LEGAL if so, otherwise the first option not in the string */
 
-{
   int j;
   char option, *s;
   for (j = 0; j < MAX_OPTIONS; j++) {

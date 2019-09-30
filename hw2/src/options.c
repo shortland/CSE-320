@@ -22,21 +22,18 @@
 #include "choices.h"
 
 
-print_short ()
-
+void print_short() {
 /* print the names and phone numbers of everyone in the rolodex. */
-
-{ 
 
   Ptr_Rolo_List rptr;
   Ptr_Rolo_Entry entry;
-        
+
   rptr = Begin_Rlist;
   if (rptr == 0) {
      fprintf(stderr,"No entries to print out...\n");
      return;
   }
-   
+
   fprintf (
      stdout,
      "\nNAME                      WORK PHONE                HOME PHONE"
@@ -54,22 +51,22 @@ print_short ()
             get_basic_rolo_field((int) R_NAME,entry),
             get_basic_rolo_field((int) R_WORK_PHONE,entry),
             get_basic_rolo_field((int) R_HOME_PHONE,entry)
-         );   
+         );
          rptr = get_next_link(rptr);
-   }       
-   
- }  
-   
+   }
 
-person_match (person,entry) char *person; Ptr_Rolo_Entry entry; 
- 
+ }
+
+
+person_match (person,entry) char *person; Ptr_Rolo_Entry entry;
+
 /* Match against a rolodex entry's Name and Company fields. */
 /* Thus if I say 'rolo CCA' I will find people who work at CCA. */
 /* This is good because sometimes you will forget a name but remember */
 /* the company the person works for. */
 
-{ 
-  char *name, *company;        
+{
+  char *name, *company;
   int len;
   len = strlen(person);
   name = get_basic_rolo_field((int) R_NAME,entry);
@@ -78,12 +75,12 @@ person_match (person,entry) char *person; Ptr_Rolo_Entry entry;
   if (strncsearch(company,strlen(company),person,len)) return(1);
   return(0);
 }
- 
+
 
 int find_all_person_matches (person) char *person;
 
 {
-  Ptr_Rolo_List rptr = Begin_Rlist;        
+  Ptr_Rolo_List rptr = Begin_Rlist;
   int count = 0;
   while (rptr != 0) {
     unset_matched(rptr);
@@ -97,19 +94,19 @@ int find_all_person_matches (person) char *person;
 }
 
 
-look_for_person (person) char *person; 
+look_for_person (person) char *person;
 
 /* search against Name and Company over the rolodex.  If a match is found */
 /* display the entry and give the user a choice of what to do next. */
 
 {
-  Ptr_Rolo_List rptr;        
+  Ptr_Rolo_List rptr;
   int found = 0,result,nmatches;
   static displayed_menu = 0;
   char *response;
-  
-  rptr = Begin_Rlist;        
-  while (rptr != 0) {        
+
+  rptr = Begin_Rlist;
+  while (rptr != 0) {
     if (person_match(person,get_entry(rptr))) {
        clear_the_screen();
        display_entry(get_entry(rptr));
@@ -164,13 +161,11 @@ look_for_person (person) char *person;
   else {
      printf("No further matches for '%s'\n",person);
      sleep(2);
-  }   
+  }
 }
- 
- 
-print_people ()
 
-{
+
+void print_people() {
   int index;
   char *person;
   index = 1;
@@ -181,21 +176,18 @@ print_people ()
 }
 
 
-interactive_rolo ()
-
+void interactive_rolo() {
 /* Top level of the iteractive rolodex.  This code is just a big switch */
 /* which passes responsibility off to various routines in 'operations.c' */
 /* and 'update.c' */
 
-{
-
   int result,rval,field_index;
   char *response,*field_name,*search_string;
 
-  fprintf(stdout,"\n\nTMC ROLODEX, Version %s\n\n\n",VERSION);        
-  
-  while (1) {        
-        
+  fprintf(stdout,"\n\nTMC ROLODEX, Version %s\n\n\n",VERSION);
+
+  while (1) {
+
     cathelpfile(libdir("mainmenu"),0,0);
     rval = menu_match (
          &result,
@@ -210,22 +202,22 @@ interactive_rolo ()
          "$",M_SEARCH_BY_OTHER,
          "!",M_PRINT_TO_LASER_PRINTER
       );
-      
+
     switch (rval) {
-        
+
       case MENU_AMBIGUOUS :
       case MENU_ERROR :
         fprintf(stderr,"Impossible return 1 from main menu_match\n");
         exit(-1);
         break;
-        
+
       case MENU_NO_MATCH :
         response = copystr(response);
         rolo_search_mode((int) R_NAME,Field_Names[(int) R_NAME],response);
         break;
-        
+
       case MENU_MATCH :
-        
+
         switch (result) {
           case M_ADD :
             rolo_add();
@@ -266,19 +258,19 @@ interactive_rolo ()
             save_and_exit(-1);
         }
         break;
-            
+
       case MENU_EOF :
         user_eof();
         break;
-        
+
       default :
         fprintf(stderr,"Impossible return 2 from menu_match\n");
         save_and_exit(-1);
-        
+
     }
-    
+
     clear_the_screen();
-    
+
   }
 
 }

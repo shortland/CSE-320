@@ -23,13 +23,16 @@ typedef struct argument {
 /* all the arguments (in a list) and a toggle for every possible option */
 
 typedef struct {
-        Ptr_Cmd_Arg non_dash_arg_list; 
+        Ptr_Cmd_Arg non_dash_arg_list;
         int dash_options[MAX_OPTIONS];
 } Cmd_Line, *Ptr_Cmd_Line;
 
 /*--------------------------------------------------------------------------*/
-        
-extern char *malloc();
+
+/**
+ * TODO: I commented it out b/c of type difference.
+ */
+//extern char *malloc();
 
 extern int get_args();
 
@@ -39,8 +42,8 @@ extern int get_args();
         /* line will cause an error.  If print_msg, then  any error that */
         /* is noticed is printed out to stderr.  If !dup_error then */
         /* 'foo -a 3 4 -b -a 5' is equivalent to 'foo -a 3 4 5 -b' */
-        
-        
+
+
 extern Bool any_option_present();
 
         /* no arguments */
@@ -69,7 +72,7 @@ extern int n_non_dash_args();
 
         /* no arguments */
 
-extern Bool check_option_args();        
+extern Bool check_option_args();
 
         /* char achar; int min; int max; */
 
@@ -83,14 +86,14 @@ extern char legal_options();
         /* in the legaloptions string, otherwise returns the first option */
         /* character not in the string. */
 
-extern set_option();
+extern void set_option();
 
         /* char achar */
 
-extern error_message();
+extern void error_message();
 
         /* char *progname; char **argv; int index; char *usage; */
 
-extern print_args();
+extern void print_args();
 
         /* debugging routine */

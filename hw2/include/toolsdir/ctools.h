@@ -68,7 +68,7 @@ extern int nbuffconcat();
 
   /* char *buffer; int n; char *s1,*s2,*s3,*s4,*s5,*s6; */
   /* all the strings must be null terminated.  Buffer must be big enough */
-  /* to hold the null terminated result.  0 < n < 7 .. 
+  /* to hold the null terminated result.  0 < n < 7 ..  */
   /* returns -1 if n is out of range, otherwise 0 */
 
 extern int slcompare();
@@ -227,7 +227,7 @@ char *make_path_numeric_extension();
 
 char *just_filename();
 
-/*  
+/*
   char *path; Bool new; Bool perm;
 
   Given a path of the form /<x>/<y>/<z> returns <z>.  If new is not set
@@ -248,7 +248,7 @@ char *just_filename();
 #define TOO_MANY_LINES -4
 #define LINE_TOO_LONG -5
 
-extern read_yes_or_no ();
+extern int read_yes_or_no();
 
   /* FILE *iport, *oport; char *prompt; char *helpstring; char *quitstring; */
 
@@ -259,7 +259,10 @@ extern read_yes_or_no ();
   /* eventually returned. */
 
 
-extern int getline ();
+/**
+ * TODO:I commented it out b/c of type difference
+ */
+//extern getline();
 
   /* FILE *iport; char *buffer; int buflen; */
 
@@ -267,7 +270,7 @@ extern int getline ();
   /* Returns AT_EOF if at end of file when called.  If it encounters */
   /* end of file after reading at least one character, the eof is treated */
   /* as if it were a newline.   Returns TOO_MANY_CHARS if more than */
-  /* buflen - 1 characters are read before encountering a newline. */        
+  /* buflen - 1 characters are read before encountering a newline. */
   /* In this case exactly buflen - 1 characters are read. */
   /* The last character read is always follwed by a '\0'. */
   /* if successful getline returns the number of characters read exclusive */
@@ -290,7 +293,7 @@ extern int getfile();
   /* Returns the number of lines in the file (and therefore the number */
   /* of entries in *ptr_lines) if successful.  Returns IOERROR if it */
   /* could not open the file to read from. Returns TOO_MANY_CHARS if */
-  /* it encounters a line longer than 'maxlinelen' characters.  
+  /* it encounters a line longer than 'maxlinelen' characters. */
 
   /* Space for each line is malloc'ed as it is read in and the text for */
   /* the jth line is stored in (*ptr_lines)[j] */
@@ -312,7 +315,7 @@ extern int ngetfile();
 
 extern int read_file_into_buffer();
 
-  /* char *filename; 
+  /* char *filename;
      char ***ptr_lines;
      int maxlines;
      char *buffer;
@@ -330,7 +333,7 @@ extern int read_file_into_buffer();
   /* filled before end of file is reached, and LINE_TOO_LONG is any line is */
   /* longer than linebuflen.  Returns number of lines read in if successful. */
 
-extern char *efopen();  
+extern char *efopen();
 
   /* char *filename; char *mode */
 

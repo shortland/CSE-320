@@ -33,7 +33,7 @@ int allocate_memory_chunk (space) int space;
 /* malloc up a new block of memory.  Set our static variables */
 /* returns NO_MORE_MEMORY if can't allocate block. */
 
-{ 
+{
   if (0 == (ptr_space = malloc(space))) {
         fprintf(stderr,"fatal error, no more memory\n");
         return(NO_MORE_MEMORY);
@@ -52,12 +52,12 @@ char * get_memory_chunk (size) int size;
 /* returns 0 if no more memory. */
 
 { char *rval;
-        
+
   if (size > chunk_size) {
         fprintf(stderr,"attempt to allocate too large a chunk\n");
         return(0);
   }
-        
+
   if (size > bytes_left) {
         if (NO_MORE_MEMORY == allocate_memory_chunk(chunk_size)) {
                 return(0);
@@ -69,7 +69,7 @@ char * get_memory_chunk (size) int size;
   ptr_next_byte += size;
   bytes_left -= size;
   return(rval);
-  
+
 }
 
 

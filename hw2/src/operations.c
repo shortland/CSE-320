@@ -17,6 +17,18 @@
 #include "datadef.h"
 #include "choices.h"
 
+/** Mine */
+#include <string.h>
+#include <unistd.h>
+
+#include "operations.h"
+#include "menuaux.h"
+#include "io.h"
+#include "clear.h"
+#include "rolo.h"
+#include "rlist.h"
+#include "update.h"
+
 extern char *ctime();
 
 Ptr_Rolo_List create_entry(basicdata, otherdata) char **basicdata, **otherdata;
@@ -47,7 +59,7 @@ Ptr_Rolo_List create_entry(basicdata, otherdata) char **basicdata, **otherdata;
     return (newlink);
 }
 
-other_fields()
+int other_fields()
 {
     int rval;
     rval = rolo_menu_yes_no(
@@ -56,20 +68,22 @@ other_fields()
     return (rval == MENU_YES);
 }
 
-add_the_entry()
+int add_the_entry()
 {
     return (MENU_YES == rolo_menu_yes_no(
                             "Add new entry to rolodex? ", DEFAULT_YES, 1,
                             "newaddhelp", "adding newly entered entry"));
 }
 
-rolo_add()
-
+void rolo_add()
 {
     int i, j, k, rval, menuval;
-    long timeval;
+    /** TODO: unused variable */
+    //long timeval;
     char *response;
-    char *basicdata[N_BASIC_FIELDS], *otherdata[100], *datum;
+    char *basicdata[N_BASIC_FIELDS], *otherdata[100];
+    /** TODO: unused variable */
+    //char *datum;
     Ptr_Rolo_List rlink;
 
     for (j = 0; j < 100; j++)
@@ -253,10 +267,9 @@ add_entry:
     }
 }
 
-entry_action(rlink) Ptr_Rolo_List rlink;
-
+int entry_action(Ptr_Rolo_List rlink)
 {
-    static entry_menu_displayed = 0;
+    static int entry_menu_displayed = 0;
     int rval, menuval;
     char *response;
 
@@ -322,8 +335,7 @@ redo:
     return (menuval);
 }
 
-display_list_of_entries(rlist) Ptr_Rolo_List rlist;
-
+void display_list_of_entries(Ptr_Rolo_List rlist)
 {
     Ptr_Rolo_List old;
 
@@ -376,10 +388,10 @@ display_list_of_entries(rlist) Ptr_Rolo_List rlist;
     sleep(2);
 }
 
-rolo_peruse_mode(first_rlink) Ptr_Rolo_List first_rlink;
-
+void rolo_peruse_mode(Ptr_Rolo_List first_rlink)
 {
-    int rval;
+    /** TODO: unused var */
+    // int rval;
     Ptr_Rolo_List rlist = first_rlink;
     if (0 == Begin_Rlist)
     {

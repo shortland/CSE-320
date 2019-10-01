@@ -4,6 +4,9 @@
 #endif
 #undef putchar
 
+/** Mine */
+#include "clear.h"
+
 int putchar();
 
 static int ok_to_clear;

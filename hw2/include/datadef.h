@@ -7,11 +7,11 @@
 #define OTHER -1
 
 /**
- * TODO: commented out b/c Basic_Field usage is N/A. And idk what name to give this.
+ * TODO: removed typedef cus directly uses R_NAME
  */
-// typedef enum Basic_Field {
-//     R_NAME = 0, R_WORK_PHONE, R_HOME_PHONE, R_COMPANY, R_WORK_ADDRESS, R_HOME_ADDRESS, R_REMARKS, R_UPDATED
-// };
+enum Basic_Field {
+    R_NAME = 0, R_WORK_PHONE, R_HOME_PHONE, R_COMPANY, R_WORK_ADDRESS, R_HOME_ADDRESS, R_REMARKS, R_UPDATED
+};
 
 extern char *Field_Names[];
 

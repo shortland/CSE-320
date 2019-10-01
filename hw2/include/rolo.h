@@ -3,4 +3,6 @@
 
 void save_and_exit(int rval);
 
+void user_eof();
+
 #endif

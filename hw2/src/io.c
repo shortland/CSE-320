@@ -15,6 +15,9 @@
 #include "datadef.h"
 #include "rolofiles.h"
 
+/** Mine */
+#include "io.h"
+
 char *Field_Names[N_BASIC_FIELDS] = {
 
     "Name: ", "Work Phone: ", "Home Phone: ", "Company: ",
@@ -307,8 +310,7 @@ display_field_names()
     printf("A user created item name\n\n");
 }
 
-display_entry(entry) Ptr_Rolo_Entry entry;
-
+void display_entry(Ptr_Rolo_Entry entry)
 {
     int j, n_others;
     char *string;
@@ -371,7 +373,7 @@ display_entry_for_update(entry) Ptr_Rolo_Entry entry;
     fprintf(stdout, "\n");
 }
 
-int cathelpfile(char *filepath, char *helptopic, int clear)
+void cathelpfile(char *filepath, char *helptopic, int clear)
 {
     FILE *fp;
     char buffer[MAXLINELEN];
@@ -397,7 +399,7 @@ int cathelpfile(char *filepath, char *helptopic, int clear)
     return;
 }
 
-any_char_to_continue()
+void any_char_to_continue()
 {
     char buffer[80];
     printf("RETURN to continue: ");

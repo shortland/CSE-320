@@ -21,6 +21,9 @@
 #include "datadef.h"
 #include "choices.h"
 
+/** Mine */
+#include "options.h"
+
 void print_short()
 {
     /* print the names and phone numbers of everyone in the rolodex. */

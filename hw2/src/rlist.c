@@ -1,5 +1,8 @@
 #include "datadef.h"
 
+/** Mine */
+#include "rlist.h"
+
 int rlength(Ptr_Rolo_List rlist)
 {
     return ((rlist == 0) ? 0 : 1 + rlength(get_next_link(rlist)));
@@ -17,9 +20,7 @@ Ptr_Rolo_List new_link_with_entry()
     return (newlink);
 }
 
-rolo_insert(link, compare) Ptr_Rolo_List link;
-int (*compare)();
-
+void rolo_insert(Ptr_Rolo_List link, int (*compare)())
 {
     Ptr_Rolo_List rptr;
 
@@ -60,8 +61,7 @@ int (*compare)();
     return;
 }
 
-rolo_delete(link) Ptr_Rolo_List link;
-
+void rolo_delete(Ptr_Rolo_List link)
 {
     if (get_next_link(link) == 0 && get_prev_link(link) == 0)
     {

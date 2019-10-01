@@ -17,6 +17,9 @@
 #include "datadef.h"
 #include "choices.h"
 
+/** Mine */
+#include "update.h"
+
 char *get_new_value()
 {
     char buffer[200];
@@ -71,12 +74,10 @@ Ptr_Rolo_Entry copy_entry(entry) Ptr_Rolo_Entry entry;
     return (new_entry);
 }
 
-rolo_update_mode(rlink) Ptr_Rolo_List rlink;
-
+void rolo_update_mode(Ptr_Rolo_List rlink)
+{
 /* Update the fields of an entry.  The user is not allowed to modify the */
 /* timestamp field. */
-
-{
     int rval, menuval, findex, updated, newlen, n, nfields, j, name_changed;
     char *response, *s, *newfield, *newval, *other, **others;
     Ptr_Rolo_Entry entry, old_entry;

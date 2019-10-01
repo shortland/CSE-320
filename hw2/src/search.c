@@ -17,6 +17,8 @@
 #include "datadef.h"
 #include "choices.h"
 
+
+
 char *select_search_string()
 
 /* returns 0 if user wants to quit, otherwise returns a user-provided string */

@@ -28,8 +28,8 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "clear.h"
 #include "rolo.h"
+#include "clear.h"
 #include "io.h"
 #include "rlist.h"
 #include "options.h"
@@ -92,11 +92,9 @@ void user_interrupt()
     exit(-1);
 }
 
-void user_eof()
-
+void user_eof() {
 /* if the user hits C-D */
 
-{
     unlink(homedir(ROLOLOCK));
     fprintf(stderr, "\nUnexpected EOF on terminal. Saving rolodex and exiting\n");
     save_and_exit(-1);

@@ -15,13 +15,10 @@
 #include "rolodefs.h"
 #include "datadef.h"
 
-rolo_menu_yes_no(prompt, rtn_default, help_allowed, helpfile, subject)
+/** Mine */
+#include "menuaux.h"
 
-    char *prompt;
-int rtn_default;
-int help_allowed;
-char *helpfile, *subject;
-
+int rolo_menu_yes_no(char *prompt, int rtn_default, int help_allowed, char *helpfile, char *subject)
 {
     int rval;
 reask:

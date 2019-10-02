@@ -18,7 +18,15 @@
 #include "choices.h"
 
 /** Mine */
+#include <unistd.h>
+#include <string.h>
+
 #include "update.h"
+#include "rolo.h"
+#include "io.h"
+#include "clear.h"
+#include "menuaux.h"
+#include "rlist.h"
 
 char *get_new_value()
 {

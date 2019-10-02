@@ -11,4 +11,6 @@ void any_char_to_continue();
 
 void display_entry(Ptr_Rolo_Entry entry);
 
+void display_entry_for_update(Ptr_Rolo_Entry entry);
+
 #endif

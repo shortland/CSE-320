@@ -341,7 +341,7 @@ void display_entry(Ptr_Rolo_Entry entry)
     fprintf(stdout, "\n");
 }
 
-display_entry_for_update(entry) Ptr_Rolo_Entry entry;
+void display_entry_for_update(Ptr_Rolo_Entry entry)
 
 /* same as display_entry, except each item is numbered and the Date Updated */
 /* item is not displayed */

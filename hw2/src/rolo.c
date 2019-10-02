@@ -42,11 +42,9 @@ int reorder_file = 0;
 int rololocked = 0;
 int in_search_mode = 0;
 
-char *rolo_emalloc(size) int size;
-
-/* error handling memory allocator */
-
+char *rolo_emalloc(int size)
 {
+    /* error handling memory allocator */
     char *rval;
     if (0 == (rval = malloc(size)))
     {

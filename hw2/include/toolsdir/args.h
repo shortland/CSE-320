@@ -32,8 +32,10 @@ typedef struct
 /*--------------------------------------------------------------------------*/
 
 /**
- * TODO: I commented it out b/c of type difference.
+ * TODO: ...
  */
+/** TODO: Maybe? */
+extern int allocate_memory_chunk(int space);
 //extern char *malloc();
 
 extern int get_args();
@@ -49,19 +51,19 @@ extern Bool any_option_present();
 
 /* no arguments */
 
-extern Bool option_present();
+extern Bool option_present(char achar);
 
 /* char achar; */
 
-extern char *option_arg();
+extern char *option_arg(char achar, int n);
 
 /* char achar; int n; */
 
-extern char *non_option_arg();
+extern char *non_option_arg(int n);
 
 /* int n; */
 
-extern int n_option_args();
+extern int n_option_args(char achar);
 
 /* char achar; */
 
@@ -73,13 +75,13 @@ extern int n_non_dash_args();
 
 /* no arguments */
 
-extern Bool check_option_args();
+extern Bool check_option_args(char achar, int min, int max);
 
 /* char achar; int min; int max; */
 
 #define ALL_LEGAL 0
 
-extern char legal_options();
+extern char legal_options(char *legaloptions);
 
 /* char *legaloptions; */
 /* legaloptions should be a string of characters all in the range */
@@ -87,11 +89,11 @@ extern char legal_options();
 /* in the legaloptions string, otherwise returns the first option */
 /* character not in the string. */
 
-extern void set_option();
+extern void set_option(char achar);
 
 /* char achar */
 
-extern void error_message();
+extern void error_message(char *progname, char **argv, int index, char *usage);
 
 /* char *progname; char **argv; int index; char *usage; */
 

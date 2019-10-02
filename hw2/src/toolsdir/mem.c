@@ -18,19 +18,23 @@
 
 #define NO_MORE_MEMORY -1
 
+/** Mine */
+#include <stdlib.h>
+#include <string.h>
+
 static int bytes_left;      /* space left in current block */
 static char *ptr_next_byte; /* next free byte */
 static char *ptr_space;     /* current block */
 static int chunk_size;      /* size of block last allocated */
 
-extern char *malloc();
+/** TODO: Maybe? */
+extern int allocate_memory_chunk(int space);
+//extern char *malloc();
 
-int allocate_memory_chunk(space) int space;
-
-/* malloc up a new block of memory.  Set our static variables */
-/* returns NO_MORE_MEMORY if can't allocate block. */
-
+int allocate_memory_chunk(int space)
 {
+    /* malloc up a new block of memory.  Set our static variables */
+    /* returns NO_MORE_MEMORY if can't allocate block. */
     if (0 == (ptr_space = malloc(space)))
     {
         fprintf(stderr, "fatal error, no more memory\n");

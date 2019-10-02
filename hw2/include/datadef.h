@@ -68,8 +68,10 @@ extern int rololocked;
 
 extern char *rolo_emalloc();
 /**
- * TODO: commented out b/c duplicated
+ * TODO: ...
  */
+/** TODO: Maybe? */
+extern int allocate_memory_chunk(int space);
 //extern char *malloc();
 extern Ptr_Rolo_List new_link_with_entry();
 extern char *copystr();

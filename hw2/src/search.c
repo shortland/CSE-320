@@ -42,8 +42,7 @@ char *select_search_string()
     }
 }
 
-select_field_to_search_by(ptr_index, ptr_name) int *ptr_index;
-char **ptr_name;
+int select_field_to_search_by(int *ptr_index, char **ptr_name)
 
 /* returns -1 if the user wishes to abort, otherwise returns 0. */
 /* if the user wishes to search by a user-defined field, *ptr_index is OTHER */
@@ -232,7 +231,7 @@ Ptr_Rolo_List *ptr_first_match;
     return (count);
 }
 
-rolo_search_mode(field_index, field_name, search_string)
+void rolo_search_mode(field_index, field_name, search_string)
 
     int field_index;
 char *field_name;

@@ -22,7 +22,16 @@
 #include "choices.h"
 
 /** Mine */
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "options.h"
+#include "clear.h"
+#include "io.h"
+#include "rolo.h"
+#include "search.h"
+#include "operations.h"
 
 void print_short()
 {
@@ -58,7 +67,7 @@ void print_short()
     }
 }
 
-person_match(person, entry) char *person;
+int person_match(person, entry) char *person;
 Ptr_Rolo_Entry entry;
 
 /* Match against a rolodex entry's Name and Company fields. */
@@ -97,7 +106,7 @@ int find_all_person_matches(person) char *person;
     return (count);
 }
 
-look_for_person(person) char *person;
+void look_for_person(char *person)
 
 /* search against Name and Company over the rolodex.  If a match is found */
 /* display the entry and give the user a choice of what to do next. */
@@ -105,7 +114,7 @@ look_for_person(person) char *person;
 {
     Ptr_Rolo_List rptr;
     int found = 0, result, nmatches;
-    static displayed_menu = 0;
+    static int displayed_menu = 0;
     char *response;
 
     rptr = Begin_Rlist;
@@ -146,6 +155,7 @@ look_for_person(person) char *person;
             case P_CONTINUE:
                 break;
             case P_NEXT_PERSON:
+                /** TODO: next person is automatically done? */
                 return;
                 break;
             case P_ABORT:

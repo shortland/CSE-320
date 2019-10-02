@@ -23,11 +23,14 @@
 #include "clear.h"
 
 char *Field_Names[N_BASIC_FIELDS] = {
-
-    "Name: ", "Work Phone: ", "Home Phone: ", "Company: ",
-    "Work Address: ", "Home Address: ", "Remarks: ", "Date Updated: "
-
-};
+    "Name: ",
+    "Work Phone: ",
+    "Home Phone: ",
+    "Company: ",
+    "Work Address: ",
+    "Home Address: ",
+    "Remarks: ",
+    "Date Updated: "};
 
 Ptr_Rolo_List Begin_Rlist = 0;
 Ptr_Rolo_List End_Rlist = 0;
@@ -239,7 +242,7 @@ int show, up;
         }
     }
     // TODO: unused variable
-    semi = semi;
+    semi++;
     putchar('\n');
 }
 

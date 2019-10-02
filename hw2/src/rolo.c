@@ -81,10 +81,9 @@ char *timestring()
 }
 
 void user_interrupt()
-
-/* if the user hits C-C (we assume he does it deliberately) */
-
 {
+    /* if the user hits C-C (we assume he does it deliberately) */
+
     unlink(homedir(ROLOLOCK));
     fprintf(stderr, "\nAborting rolodex, no changes since last save recorded\n");
     exit(-1);

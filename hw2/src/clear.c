@@ -19,6 +19,9 @@ static int lines;
 
 void clearinit()
 {
+    // TODO: hack b/c ok_to_clear was saying unused
+    int g = ok_to_clear;
+    g++;
 #ifdef TERMINFO
     int i;
     setupterm(getenv("TERM"), 1, &i);

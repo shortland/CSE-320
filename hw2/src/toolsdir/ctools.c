@@ -1,7 +1,7 @@
 /* -*- Mode: C; Package: (CTOOLS C) -*- */
 
 #include <ctype.h>
-//#include <stdio.h>
+#include <stdio.h>
 // TODO: comment out b/c use native getline() rather than stdio builtin
 
 #ifdef BSD42
@@ -9,6 +9,11 @@
 #endif
 
 #include "ctools.h"
+
+/** Mine */
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
 
 /* miscellaneous fairly primitive routines that deal with characters, */
 /* strings, memory, simple input and pathnames. */
@@ -80,7 +85,8 @@
 
 */
 
-extern char *malloc();
+/** TODO: why do we need to extern malloc? */
+//extern char *malloc();
 
 char *emalloc(int space)
 {
@@ -147,10 +153,12 @@ void buffconcat(char *buffer, char *s1, char *s2)
     *buffer = '\0';
 }
 
-int nbuffconcat(char *buffer, int n, char *s1, char *s2, char *s3, char *s4, char *s5, char *s6)
+int nbuffconcat(char *buffer, int n, ...)
 {
     /* concatenates up to 6 strings into a buffer.  Returns -1 if n */
     /* is not reasonable, otherwise returns 0. */
+    va_list ap;
+    va_start(ap, n);
 
     register char *b;
     register char *s;
@@ -165,28 +173,30 @@ int nbuffconcat(char *buffer, int n, char *s1, char *s2, char *s3, char *s4, cha
         switch (i)
         {
         case 1:
-            s = s1;
+            s = va_arg(ap, char *);
             break;
         case 2:
-            s = s2;
+            s = va_arg(ap, char *);
             break;
         case 3:
-            s = s3;
+            s = va_arg(ap, char *);
             break;
         case 4:
-            s = s4;
+            s = va_arg(ap, char *);
             break;
         case 5:
-            s = s5;
+            s = va_arg(ap, char *);
             break;
         case 6:
-            s = s6;
+            s = va_arg(ap, char *);
             break;
         }
         while (*s != '\0')
             *b++ = *s++;
     }
     *b = '\0';
+
+    va_end(ap);
     return (0);
 }
 
@@ -438,7 +448,7 @@ Bool pretrim, posttrim;
             ch = *np;
             trim = (0 != index(trimchars, ch));
             if (trim)
-                *np == '\0';
+                *np = '\0'; /** TODO: Maybe? */
             if (!trim || np == oldstring)
                 break;
             np--;
@@ -458,30 +468,30 @@ Bool pretrim, posttrim;
     return (ip_string_trim(newstring, trimchars, pretrim, posttrim));
 }
 
-char *string_upcase(astring) char *astring;
+char *string_upcase(char *astring)
 {
     while (*astring)
     {
         *astring = to_upper_if_lower(*astring);
         astring++;
     }
+    return astring;
 }
 
-char *string_downcase(astring) char *astring;
+char *string_downcase(char *astring)
 {
     while (*astring)
     {
         *astring = to_lower_if_upper(*astring);
         astring++;
     }
+    return astring;
 }
 
-yes_or_no_check(astring) char *astring;
-
-/* returns 1 if yes, 0 if no, -1 if neither */
-/* works for 'Y' 'YES' 'NO' 'N' in any capitalization */
-
+int yes_or_no_check(char *astring)
 {
+    /* returns 1 if yes, 0 if no, -1 if neither */
+    /* works for 'Y' 'YES' 'NO' 'N' in any capitalization */
     int len;
     len = strlen(astring);
     if (len == 0 || len > 3)
@@ -608,7 +618,7 @@ int low, high;
     return (value);
 }
 
-int sreverse(buffer, astring) char *buffer, *astring;
+void sreverse(char *buffer, char *astring)
 {
     register int last = strlen(astring);
     buffer[last--] = '\0';

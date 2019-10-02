@@ -28,40 +28,40 @@
 #undef getline
 #define getline(a,b,c) getSpecificline(a,b,c)
 
-extern char *emalloc();
+extern char *emalloc(int space);
 
 /* int space; */
 /* space must be greater than 0 */
 /* Causes executution to halt with a 'Fatal error' message if memory */
 /* cannot be allocated, otherwise returns pointer to malloc-ed space */
 
-extern char *anewstr();
+extern char *anewstr(char *astring);
 
 /* char *astring; */
 /* emalloc's space and copies astring into that space.  Returns pointer */
 /* to new string. */
 
-extern int copy();
+extern void copy(char *dest, char *src, int n);
 
 /* char *dest, *src; int n; */
 /* copies exactly n bytes. */
 /* return value undefined.  Use only as procedure. */
 
-extern int fill();
+extern void fill(char *addr, char ch, int n);
 
 /* char *addr, ch; int n; */
 /* copies ch into n consecutive bytes. */
 /* return value undefined.  Use only as procedure. */
 
-extern int to_upper_if_lower();
+extern int to_upper_if_lower(char ch);
 
 /* char ch;  Returns possibly upper-cased value. */
 
-extern int to_lower_if_upper();
+extern int to_lower_if_upper(char ch);
 
 /* char ch;  Returns possibly lower-cased value. */
 
-extern int buffconcat();
+extern void buffconcat(char *buffer, char *s1, char *s2);
 
 /* char *buffer, *s1, *s2; */
 /* s1 and s2 must be null terminated.  Buffer must be at least */
@@ -70,32 +70,32 @@ extern int buffconcat();
 
 /* return value undefined.  Use only as procedure. */
 
-extern int nbuffconcat();
+extern int nbuffconcat(char *buffer, int n, ...);
 
 /* char *buffer; int n; char *s1,*s2,*s3,*s4,*s5,*s6; */
 /* all the strings must be null terminated.  Buffer must be big enough */
 /* to hold the null terminated result.  0 < n < 7 ..  */
 /* returns -1 if n is out of range, otherwise 0 */
 
-extern int slcompare();
+extern int slcompare(char *s1, int l1, char *s2, int l2);
 
 /* char *s1; int l1; char *s2; int l2 */
 /* does not stop if it encounters a null character. */
 /* returns 0 if equal, -1 if not equal */
 
-extern int slge_compare();
+extern int slge_compare(char *s1, int l1, char *s2, int l2);
 
 /* char *s1; int l1; char *s2; int l2 */
 /* does not stop if it encounters a null character. */
 /* returns 0 if equal, -1 if s1 < s2, 1 if s1 > s2 */
 
-extern int nocase_compare();
+extern int nocase_compare(char *s1, int l1, char *s2, int l2);
 
 /* char *s1; int l1; char *s2; int l2 */
 /* does not stop if it encounters a null character. */
 /* returns 0 if equal, -1 if s1 < s2, 1 if s1 > s2  case independently. */
 
-extern char *strfind();
+extern char *strfind(char *s1, char *s2, int fast);
 
 /* char *s1; char *s2; int fast; */
 /* finds s2 as a substring of s1.  s1 and s2 are null terminated. */
@@ -105,7 +105,7 @@ extern char *strfind();
 /* WARNING:  will access off the end of s1 in the interest of efficiency */
 /* if 'fast' is non-zero. */
 
-extern char *strncfind();
+extern char *strncfind(char *s1, char *s2, int fast);
 
 /* char *s1; char *s2; int fast; */
 /* finds s2 as a substring of s1 case independently.  s1 and s2 are */
@@ -116,21 +116,21 @@ extern char *strncfind();
 /* WARNING:  will access off the end of s1 in the interest of efficiency */
 /* if 'fast' is non-zero. */
 
-extern char *strsearch();
+extern char *strsearch(char *s1, int l1, char *s2, int l2);
 
 /* char *s1; int l1; char *s2; int l2 */
 /* finds s2 as a substring of s1.  Does not stop if it encounters a null. */
 /* returns pointer into s1, otherwise (char *) 0 if search fails */
 /* case dependent */
 
-extern char *strncsearch();
+extern char *strncsearch(char *s1, int l1, char *s2, int l2);
 
 /* char *s1; int l1; char *s2; int l2 */
 /* finds s2 as a substring of s1. */
 /* returns pointer into s1, otherwise (char *) 0 if search fails */
 /* case independent */
 
-extern int remove_excess_blanks();
+extern int remove_excess_blanks(char *newstring, char *oldstring);
 
 /* char *newstring, *oldstring; */
 /* newstring must be long enough to hold the result, which may be as */
@@ -140,7 +140,7 @@ extern int remove_excess_blanks();
 /* following a blank. */
 /* returns length of newstring */
 
-extern int yes_or_no_check();
+extern int yes_or_no_check(char *astring);
 
 /* char *astring; */
 /* returns 1 for yes, 0 for no, -1 for neither. */
@@ -157,7 +157,7 @@ extern Bool all_alphabetic();
 extern Bool all_alphanumeric();
 extern Bool all_ascii();
 
-extern int str_to_pos_int();
+extern int str_to_pos_int(char *astring, int low, int hight);
 
 /* char *astring; int low,high; */
 /* low must be >= 0. */
@@ -166,7 +166,7 @@ extern int str_to_pos_int();
 /* despite its name, 0 can be returned as a legitimate value. */
 /* treats all digit strings as decimal. */
 
-extern int sreverse();
+extern void sreverse(char *buffer, char *astring);
 
 /* char *buffer; char *astring; */
 /* puts the characters of astring in reverse order into buffer. */
@@ -174,7 +174,7 @@ extern int sreverse();
 /* buffer is null terminated when done. */
 /* No return value.  Use only as procedure. */
 
-extern char *ip_sreverse();
+extern char *ip_sreverse(char *astring);
 
 /* char *astring; */
 /* Returns astring with its characters reversed. */
@@ -182,7 +182,7 @@ extern char *ip_sreverse();
 
 #define PATH_MAXPATHLEN 256
 
-char *temp_path();
+char *temp_path(char * dir, char *filename);
 
 /*
   char *dir; char *filename;
@@ -193,7 +193,7 @@ char *temp_path();
   0 is returned if the pathname would exceed PATH_MAXPATHLEN-1 chars.
 */
 
-char *perm_path();
+char *perm_path(char *dir, char *filename);
 
 /*
   char *dir; char *filename;
@@ -203,7 +203,7 @@ char *perm_path();
   on the size of the path is made.
 */
 
-char *make_path();
+char *make_path(char *dir, char *filename, char *extension, Bool perm);
 
 /*
   char *dir; char *filename; char *extension; Bool perm;
@@ -213,7 +213,7 @@ char *make_path();
   the resulting path exceeds PATH_MAXPATHLEN-1 chars.
 */
 
-char *make_path_numeric_extension();
+char *make_path_numeric_extension(char *dir, char *filename, int extension, Bool perm);
 
 /*
   char *dir; char *filename; int extension; Bool perm;
@@ -222,7 +222,7 @@ char *make_path_numeric_extension();
   string using sprintf.
 */
 
-char *just_filename();
+char *just_filename(char *path, Bool new, Bool perm);
 
 /*
   char *path; Bool new; Bool perm;
@@ -244,7 +244,7 @@ char *just_filename();
 #define TOO_MANY_LINES -4
 #define LINE_TOO_LONG -5
 
-extern int read_yes_or_no();
+extern int read_yes_or_no(FILE *iport, FILE *oport, char *prompt, char *helpstring, char *quitstring);
 
 /* FILE *iport, *oport; char *prompt; char *helpstring; char *quitstring; */
 
@@ -271,13 +271,13 @@ extern int getSpecificline(FILE *iport, char *buffer, int buflen);
 /* if successful getline returns the number of characters read exclusive */
 /* of a terminating newline or eof. */
 
-extern int getlines();
+extern int getlines(FILE *fp, int n, char ***ptr_lines, char *linebuf, int maxlinelen);
 
 /* FILE *fp; int n; char ***ptr_lines; char *linebuf; int maxlinelen; */
 /* See documentation for getfile below */
 /* If called, 'n' must have a value 0. */
 
-extern int getfile();
+extern int getfile(char *filename, char ***ptr_lines, char *linebuf, int maxlinelen);
 
 /* char *filename; char ***ptr_lines; char *linebuf; int maxlinelen; */
 
@@ -296,18 +296,18 @@ extern int getfile();
 /* file and does a lot of malloc-ing.  Use read_file_into_buffer or */
 /* ngetfile for large files. */
 
-extern int ngetlines();
+extern int ngetlines(FILE *fp, int n, char ***ptr_lines, char *linebuf, int maxlinelen);
 
 /* FILE *fp; int n; char ***ptr_lines; char *linebuf; int maxlinelen; */
 /* Same as getlines, except at most 'n' lines will be read.  Returns */
 /* TOO_MANY_LINES if more than 'n' lines are present. */
 
-extern int ngetfile();
+extern int ngetfile(int n, char *filename, char ***ptr_lines, char *linebuf, int maxlinelen);
 
 /* int n; char *filename; char ***ptr_lines; char *linebuf; int maxlinelen; */
 /* See ngetlines above. */
 
-extern int read_file_into_buffer();
+extern int read_file_into_buffer(char *filename, char ***ptr_lines, int maxlines, char *buffer, int buflen, char *linebuffer, int linebuflen);
 
 /* char *filename;
      char ***ptr_lines;
@@ -327,7 +327,7 @@ extern int read_file_into_buffer();
 /* filled before end of file is reached, and LINE_TOO_LONG is any line is */
 /* longer than linebuflen.  Returns number of lines read in if successful. */
 
-extern char *efopen();
+extern char *efopen(char *filename, char *mode);
 
 /* char *filename; char *mode */
 
@@ -337,7 +337,7 @@ extern char *efopen();
 /* The routine simply calls fopen with the same arguments, but prints a */
 /* reasonable error message and calls exit if the call to fopen fails. */
 
-extern int record_fseek();
+extern int record_fseek(FILE *fp, long rnum, int fromwhere, int rsize, int hdrsize);
 
 /* FILE *fp; long rnum; int fromwhere; int rsize; int hdrsize; */
 
@@ -350,7 +350,7 @@ extern int record_fseek();
 /* 'rnum' is either relative or absolute, depending on 'fromwhere' which */
 /* corresponds to the 'ptrname' argument of fseek. */
 
-Bool check_string();
+Bool check_string(char *str, long minlen, long maxlen);
 
 /* char *str; long minlen; long maxlen; */
 

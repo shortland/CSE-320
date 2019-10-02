@@ -21,6 +21,13 @@
 #define MAXPATHLEN 80
 #endif
 
+/**
+ * TODO: ...
+ * overlap with stdio.h ?
+ */
+#undef getline
+#define getline(a,b,c) getSpecificline(a,b,c)
+
 extern char *emalloc();
 
 /* int space; */
@@ -248,11 +255,11 @@ extern int read_yes_or_no();
 /* eventually returned. */
 
 /**
- * TODO:I commented it out b/c of type difference
+ * TODO: ...
+ * overlap with stdio.h ?
  */
-//extern getline();
-
-/* FILE *iport; char *buffer; int buflen; */
+//extern int getline(FILE *iport, char *buffer, int buflen);
+extern int getSpecificline(FILE *iport, char *buffer, int buflen);
 
 /* reads a line into buffer.  Does not put the '\n' into buffer. */
 /* Returns AT_EOF if at end of file when called.  If it encounters */

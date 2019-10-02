@@ -2,6 +2,7 @@
 #ifdef TERMINFO
 #include <term.h>
 #endif
+
 #undef putchar
 
 /** Mine */

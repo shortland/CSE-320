@@ -1,7 +1,8 @@
 /* -*- Mode: C; Package: (CTOOLS C) -*- */
 
 #include <ctype.h>
-#include <stdio.h>
+//#include <stdio.h>
+// TODO: comment out b/c use native getline() rather than stdio builtin
 
 #ifdef BSD42
 #include <strings.h>
@@ -758,21 +759,18 @@ int read_yes_or_no(FILE *iport, FILE *oport, char *prompt, char *helpstring, cha
     }
 }
 
-int getline(iport, buffer, buflen) FILE *iport;
-char *buffer;
-int buflen;
-
-/* reads a line into buffer.  Does not put the '\n' into buffer. */
-/* Returns AT_EOF if at end of file when called.  If it encounters */
-/* end of file after reading at least one character, the eof is treated */
-/* as if it were a newline.   Returns TOO_MANY_CHARS if more than */
-/* buflen - 1 characters are read before encountering a newline. */
-/* In this case exactly buflen - 1 characters are read. */
-/* The last character read is always follwed by a '\0'. */
-/* if successful getline returns the number of characters read exclusive */
-/* of a terminating newline or eof. */
-
+int getSpecificline(FILE *iport, char *buffer, int buflen)
+//int getline(FILE *iport, char *buffer, int buflen)
 {
+    /* reads a line into buffer.  Does not put the '\n' into buffer. */
+    /* Returns AT_EOF if at end of file when called.  If it encounters */
+    /* end of file after reading at least one character, the eof is treated */
+    /* as if it were a newline.   Returns TOO_MANY_CHARS if more than */
+    /* buflen - 1 characters are read before encountering a newline. */
+    /* In this case exactly buflen - 1 characters are read. */
+    /* The last character read is always follwed by a '\0'. */
+    /* if successful getline returns the number of characters read exclusive */
+    /* of a terminating newline or eof. */
     int ch;
     char *bptr = buffer;
     int nchars = 0;

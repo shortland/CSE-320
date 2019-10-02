@@ -1,34 +1,31 @@
 #include <stdio.h>
-#include <varargs.h>
+//#include <varargs.h>
 #include "ctools.h"
 #include "menu.h"
 #include "sys5.h"
 
+/** Me **/
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+
 static char line[MAX_MENU_RESPONSE_LENGTH];
 
-menu_match(
-
-    ptr_rval, ptr_ur, prompt, casetest, isub, r_no_match, r_ambiguous, n_options,
-    va_alist
-
-    )
-
-    int *ptr_rval;
-char **ptr_ur;
-char *prompt;
-int casetest;
-int isub;
-int r_no_match;
-int r_ambiguous;
-int n_options;
-va_dcl
-
+int menu_match(int *ptr_rval, char **ptr_ur, char *prompt, int casetest, int isub, int r_no_match, int r_ambiguous, int n_options, ...)
 {
 
     char sline[MAX_MENU_RESPONSE_LENGTH];
-    char *option, *options[MAX_MENU_OPTIONS];
+
+    /** TODO: unused */
+    //char *option;
+
+    char *options[MAX_MENU_OPTIONS];
     int rvals[MAX_MENU_OPTIONS];
-    int j, found, *addr, len, optionlen, rval, compare, blankindex;
+    int j, found, len, optionlen, rval, compare, blankindex;
+
+    /** TODO: unused */
+    //int *addr;
+
     va_list pvar;
 
     if (n_options > MAX_MENU_OPTIONS)
@@ -39,7 +36,7 @@ va_dcl
     /* grab all the menu options and return values.  */
 
     blankindex = -1;
-    va_start(pvar);
+    va_start(pvar, n_options);
     for (j = 0; j < n_options; j++)
     {
         options[j] = va_arg(pvar, char *);
@@ -165,9 +162,7 @@ rtn:
     return (rval);
 }
 
-menu_yes_no(prompt, allow_help) char *prompt;
-int allow_help;
-
+int menu_yes_no(char *prompt, int allow_help)
 {
     int menuval, rval;
     char *response;
@@ -243,12 +238,7 @@ extern int menu_data_help_or_abort(prompt, abortstring, ptr_response)
     }
 }
 
-menu_number_help_or_abort(prompt, abortstring, low, high, ptr_ival)
-
-    char *prompt,
-    *abortstring;
-int low, high, *ptr_ival;
-
+int menu_number_help_or_abort(char *prompt, char *abortstring, int low, int high, int *ptr_ival)
 {
     char *response, errprompt[80], numstring[MAX_MENU_RESPONSE_LENGTH];
     int rval, check;
@@ -281,25 +271,22 @@ reask:
             return (MENU_DATA);
             break;
         }
+    default:
+        return (MENU_DATA);
+        break;
     }
+
 }
 
-menu_yes_no_abort_or_help(prompt, abortstring, helpallowed, return_for_yes)
-
-    /*
-    Returns one of MENU_YES, MENU_NO, MENU_ABORT or MENU_HELP.
-    If !helpallowed, MENU_HELP will not be returned.  
-    If return_for_yes is 0, hitting return will re-prompt.
-    If it is 1, hitting return is like typing yes.
-    If it is any other value, hitting return is like typing no.
-*/
-
-    char *prompt;
-char *abortstring;
-int helpallowed;
-int return_for_yes;
-
+int menu_yes_no_abort_or_help(char *prompt, char *abortstring, int helpallowed, int return_for_yes)
 {
+    /**
+        Returns one of MENU_YES, MENU_NO, MENU_ABORT or MENU_HELP.
+        If !helpallowed, MENU_HELP will not be returned.
+        If return_for_yes is 0, hitting return will re-prompt.
+        If it is 1, hitting return is like typing yes.
+        If it is any other value, hitting return is like typing no.
+    */
     int menuval, rval;
     char *response;
 

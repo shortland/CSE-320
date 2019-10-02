@@ -1,7 +1,11 @@
 #include "datadef.h"
 
 /** Mine */
+#include <string.h>
+#include <stdio.h>
+
 #include "rlist.h"
+#include "ctools.h"
 
 int rlength(Ptr_Rolo_List rlist)
 {
@@ -89,8 +93,7 @@ void rolo_delete(Ptr_Rolo_List link)
     return;
 }
 
-compare_links(l1, l2) Ptr_Rolo_List l1, l2;
-
+int compare_links(Ptr_Rolo_List l1, Ptr_Rolo_List l2)
 {
     Ptr_Rolo_Entry e1, e2;
     char *n1, *n2;

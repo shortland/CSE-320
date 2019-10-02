@@ -2,18 +2,17 @@
 
 #include <ctype.h>
 #include <stdio.h>
-// TODO: comment out b/c use native getline() rather than stdio builtin
 
 #ifdef BSD42
 #include <strings.h>
 #endif
 
-#include "ctools.h"
-
 /** Mine */
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+
+#include "ctools.h"
 
 /* miscellaneous fairly primitive routines that deal with characters, */
 /* strings, memory, simple input and pathnames. */

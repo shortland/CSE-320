@@ -1,4 +1,5 @@
-/* -*- Mode: C; Package: (CTOOLS C) -*- */
+#ifndef CTOOLS_H
+#define CTOOLS_H
 
 #ifndef Bool
 #define Bool int
@@ -359,4 +360,6 @@ Bool check_string(char *str, long minlen, long maxlen);
 
 #ifndef check_int
 #define check_int(i, minval, maxval) ((i) >= (minval) && (i) <= (maxval))
+#endif
+
 #endif

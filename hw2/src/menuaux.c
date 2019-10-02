@@ -17,6 +17,8 @@
 
 /** Mine */
 #include "menuaux.h"
+#include "rolo.h"
+#include "io.h"
 
 int rolo_menu_yes_no(char *prompt, int rtn_default, int help_allowed, char *helpfile, char *subject)
 {
@@ -37,9 +39,10 @@ reask:
         return (rval);
         break;
     }
+    return rval;
 }
 
-rolo_menu_data_help_or_abort(prompt, helpfile, subject, ptr_response)
+int rolo_menu_data_help_or_abort(prompt, helpfile, subject, ptr_response)
 
     char *prompt,
     *helpfile, *subject;
@@ -57,7 +60,7 @@ reask:
     return (rval);
 }
 
-rolo_menu_number_help_or_abort(prompt, low, high, ptr_ival)
+int rolo_menu_number_help_or_abort(prompt, low, high, ptr_ival)
 
     char *prompt;
 int low, high, *ptr_ival;

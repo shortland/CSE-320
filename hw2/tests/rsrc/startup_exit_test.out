@@ -1,5 +1,5 @@
 Creating empty rolodex...
-Reading in rolodex from /home/gene/.rolodex.dat
+Reading in rolodex from /home/student/.rolodex.dat
 0 entries listed
 
 
@@ -18,4 +18,4 @@ TMC ROLODEX, Version 2.0
 To search for an entry by name, just type in the name.
 To update or delete an entry, first find it by searching.
 
-Select option (? for help): 
+Select option (? for help):

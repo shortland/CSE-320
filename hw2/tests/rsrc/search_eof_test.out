@@ -1,7 +1,7 @@
 Creating empty rolodex...
 
 Unexpected EOF on terminal. Saving rolodex and exiting
-Reading in rolodex from /home/gene/.rolodex.dat
+Reading in rolodex from /home/student/.rolodex.dat
 0 entries listed
 
 
@@ -29,4 +29,4 @@ Select option (? for help): 1. Name
 7. Remarks
 8. A user created item name
 
-Number of item to search by? Enter string to search for: 
+Number of item to search by? Enter string to search for:

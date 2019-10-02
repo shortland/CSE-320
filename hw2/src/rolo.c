@@ -90,8 +90,9 @@ void user_interrupt()
     exit(-1);
 }
 
-void user_eof() {
-/* if the user hits C-D */
+void user_eof()
+{
+    /* if the user hits C-D */
 
     unlink(homedir(ROLOLOCK));
     fprintf(stderr, "\nUnexpected EOF on terminal. Saving rolodex and exiting\n");

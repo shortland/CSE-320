@@ -275,7 +275,6 @@ reask:
         return (MENU_DATA);
         break;
     }
-
 }
 
 int menu_yes_no_abort_or_help(char *prompt, char *abortstring, int helpallowed, int return_for_yes)

@@ -39,9 +39,9 @@ int read_rolodex(int fd)
 {
     struct stat statdata;
     int filesize, i, j, k, start_of_others, warning_given;
-    Ptr_Rolo_Entry newentry;//, oldentry, currententry; // TODO: unused
+    Ptr_Rolo_Entry newentry; //, oldentry, currententry; // TODO: unused
     Ptr_Rolo_List newlink, rptr;
-    char *next_field, *next_other;//, *oldname, *currentname; // TODO: unused
+    char *next_field, *next_other; //, *oldname, *currentname; // TODO: unused
     char **other_pointers;
     int n_entries = 0;
 

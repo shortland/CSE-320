@@ -84,8 +84,8 @@ Ptr_Rolo_Entry copy_entry(entry) Ptr_Rolo_Entry entry;
 
 void rolo_update_mode(Ptr_Rolo_List rlink)
 {
-/* Update the fields of an entry.  The user is not allowed to modify the */
-/* timestamp field. */
+    /* Update the fields of an entry.  The user is not allowed to modify the */
+    /* timestamp field. */
     int rval, menuval, findex, updated, newlen, n, nfields, j, name_changed;
     char *response, *s, *newfield, *newval, *other, **others;
     Ptr_Rolo_Entry entry, old_entry;

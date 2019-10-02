@@ -8,7 +8,6 @@ typedef enum
 
 typedef enum
 {
-
     M_SEARCH_BY_OTHER,
     M_SEARCH_BY_NAME,
     M_PRINT_TO_LASER_PRINTER,
@@ -17,24 +16,20 @@ typedef enum
     M_PERUSE,
     M_SAVE,
     M_ADD
-
 } Main_Choices;
 
 typedef enum
 {
-
     A_ABORT_ADD,
     A_BACKUP,
     A_FILL_IN_REST,
     A_ABORT_ROLO,
     A_HELP,
     A_NO_DATA
-
 } Add_Choices;
 
 typedef enum
 {
-
     E_ABORT,
     E_UPDATE,
     E_DELETE,
@@ -42,7 +37,6 @@ typedef enum
     E_PREV,
     E_HELP,
     E_SCAN
-
 } E_Choices;
 
 typedef enum

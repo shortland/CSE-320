@@ -27,7 +27,7 @@
  * overlap with stdio.h ?
  */
 #undef getline
-#define getline(a,b,c) getSpecificline(a,b,c)
+#define getline(a, b, c) getSpecificline(a, b, c)
 
 extern char *emalloc(int space);
 
@@ -183,7 +183,7 @@ extern char *ip_sreverse(char *astring);
 
 #define PATH_MAXPATHLEN 256
 
-char *temp_path(char * dir, char *filename);
+char *temp_path(char *dir, char *filename);
 
 /*
   char *dir; char *filename;

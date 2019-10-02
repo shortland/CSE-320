@@ -12,19 +12,18 @@
 
 //extern int menu_match();
 
-extern int menu_match (
-        int *ptr_rval,
-        char **ptr_user_response,
-        char *prompt,
-        int case_significant,
-        int initial_substring_sufficient,
-        int repeat_if_no_match,
-        int repeat_if_ambiguous,
-        int n_options,
-        //char *option1, int rval1,
-        //char *option2, int rval2,
-        ...
-);
+extern int menu_match(
+    int *ptr_rval,
+    char **ptr_user_response,
+    char *prompt,
+    int case_significant,
+    int initial_substring_sufficient,
+    int repeat_if_no_match,
+    int repeat_if_ambiguous,
+    int n_options,
+    //char *option1, int rval1,
+    //char *option2, int rval2,
+    ...);
 /**
     Returns one of MENU_MATCH, MENU_AMBIGUOUS, MENU_NO_MATCH, and MENU_ERROR.
     If MENU_MATCH is returned, *ptr_rval contains the value that the caller

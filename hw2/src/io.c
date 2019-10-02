@@ -16,7 +16,11 @@
 #include "rolofiles.h"
 
 /** Mine */
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "io.h"
+#include "clear.h"
 
 char *Field_Names[N_BASIC_FIELDS] = {
 
@@ -35,9 +39,9 @@ int read_rolodex(int fd)
 {
     struct stat statdata;
     int filesize, i, j, k, start_of_others, warning_given;
-    Ptr_Rolo_Entry newentry, oldentry, currententry;
+    Ptr_Rolo_Entry newentry;//, oldentry, currententry; // TODO: unused
     Ptr_Rolo_List newlink, rptr;
-    char *next_field, *next_other, *oldname, *currentname;
+    char *next_field, *next_other;//, *oldname, *currentname; // TODO: unused
     char **other_pointers;
     int n_entries = 0;
 
@@ -174,7 +178,7 @@ int read_rolodex(int fd)
     return (n_entries);
 }
 
-write_rolo_list(fp) FILE *fp;
+void write_rolo_list(fp) FILE *fp;
 
 /* write the entire in-core rolodex to a file */
 
@@ -208,7 +212,7 @@ void write_rolo(FILE *fp1, FILE *fp2)
     write_rolo_list(fp2);
 }
 
-display_basic_field(name, value, show, up) char *name;
+void display_basic_field(name, value, show, up) char *name;
 char *value;
 int show, up;
 {
@@ -234,10 +238,12 @@ int show, up;
             putchar(*value++);
         }
     }
+    // TODO: unused variable
+    semi = semi;
     putchar('\n');
 }
 
-display_other_field(fieldstring) char *fieldstring;
+void display_other_field(fieldstring) char *fieldstring;
 {
     int already_put_sep = 0;
     int count = 0;
@@ -266,7 +272,7 @@ display_other_field(fieldstring) char *fieldstring;
     putchar('\n');
 }
 
-summarize_entry_list(rlist, ss) Ptr_Rolo_List rlist;
+void summarize_entry_list(rlist, ss) Ptr_Rolo_List rlist;
 char *ss;
 
 /* print out the Name field for each entry that is tagged as matched */
@@ -290,7 +296,7 @@ char *ss;
     putchar('\n');
 }
 
-display_field_names()
+void display_field_names()
 
 /* display and number each standard field name. */
 

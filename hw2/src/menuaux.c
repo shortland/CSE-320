@@ -42,12 +42,7 @@ reask:
     return rval;
 }
 
-int rolo_menu_data_help_or_abort(prompt, helpfile, subject, ptr_response)
-
-    char *prompt,
-    *helpfile, *subject;
-char **ptr_response;
-
+int rolo_menu_data_help_or_abort(char *prompt, char *helpfile, char *subject, char **ptr_response)
 {
     int rval;
 reask:
@@ -60,11 +55,7 @@ reask:
     return (rval);
 }
 
-int rolo_menu_number_help_or_abort(prompt, low, high, ptr_ival)
-
-    char *prompt;
-int low, high, *ptr_ival;
-
+int rolo_menu_number_help_or_abort(char *prompt, int low, int high, int *ptr_ival)
 {
     int rval;
     if (MENU_EOF == (rval = menu_number_help_or_abort(

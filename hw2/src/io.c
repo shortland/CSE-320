@@ -272,8 +272,7 @@ void display_other_field(fieldstring) char *fieldstring;
     putchar('\n');
 }
 
-void summarize_entry_list(rlist, ss) Ptr_Rolo_List rlist;
-char *ss;
+void summarize_entry_list(Ptr_Rolo_List rlist, char *ss)
 
 /* print out the Name field for each entry that is tagged as matched */
 /* and number each entry. */

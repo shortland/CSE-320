@@ -16,8 +16,16 @@
 #include "rolodefs.h"
 #include "datadef.h"
 #include "choices.h"
+#include "menuaux.h"
+#include "io.h"
 
+/** Mine */
+#include <string.h>
+#include <unistd.h>
 
+#include "clear.h"
+#include "operations.h"
+#include "io.h"
 
 char *select_search_string()
 
@@ -37,6 +45,9 @@ char *select_search_string()
         return (0);
         break;
     case MENU_DATA:
+        return (copystr(response));
+        break;
+    default: // TODO: fixed?
         return (copystr(response));
         break;
     }
@@ -111,13 +122,19 @@ reask:
                 *ptr_name = copystr(response);
                 return (0);
                 break;
+            default: // TODO: fix reask2 not used?
+                goto reask2;
+                break;
             }
         }
+        break;
+    default: // TODO: fix reask not used?
+        goto reask;
         break;
     }
 }
 
-match_by_name_or_company(search_string, sslen) char *search_string;
+int match_by_name_or_company(search_string, sslen) char *search_string;
 int sslen;
 
 {
@@ -142,7 +159,7 @@ int sslen;
     return (count);
 }
 
-match_link(rlink, field_index, field_name, fnlen, search_string, sslen)
+int match_link(rlink, field_index, field_name, fnlen, search_string, sslen)
 
     /* if a match is present, sets the 'matched' field in the link, and */
     /* returns 1, otherwise returns 0. */
@@ -168,7 +185,7 @@ int sslen;
         {
             field = get_other_field(j, entry);
             while (*field != ':')
-                *field++;
+                field++; // TODO: fixed?
             *field = '\0';
             remove_excess_blanks(name, get_other_field(j, entry));
             *field++ = ':';
@@ -196,7 +213,7 @@ int sslen;
     }
 }
 
-find_all_matches(field_index, field_name, search_string, ptr_first_match)
+int find_all_matches(field_index, field_name, search_string, ptr_first_match)
 
     /* mark every entry in the rolodex which matches against the search_string */
     /* If the search_string is a substring of the data in the given field then */

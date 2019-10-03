@@ -23,6 +23,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "rolo.h"
 #include "clear.h"
 #include "operations.h"
 #include "io.h"
@@ -48,9 +49,12 @@ char *select_search_string()
         return (copystr(response));
         break;
     default: // TODO: fixed?
-        return (copystr(response));
+        // return (copystr(response));
+        // break;
+        user_eof();
         break;
     }
+    return "";
 }
 
 int select_field_to_search_by(int *ptr_index, char **ptr_name)

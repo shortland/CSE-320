@@ -71,8 +71,11 @@ int other_fields()
 int add_the_entry()
 {
     return (MENU_YES == rolo_menu_yes_no(
-                            "Add new entry to rolodex? ", DEFAULT_YES, 1,
-                            "newaddhelp", "adding newly entered entry"));
+                            "Add new entry to rolodex? ",
+                            DEFAULT_YES,
+                            1,
+                            "newaddhelp",
+                            "adding newly entered entry"));
 }
 
 void rolo_add()

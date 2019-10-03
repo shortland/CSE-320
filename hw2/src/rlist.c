@@ -30,6 +30,7 @@ void rolo_insert(Ptr_Rolo_List link, int (*compare)())
 
     if (Begin_Rlist == 0)
     {
+        //debug("added the first entry to the rolodex");
         Begin_Rlist = link;
         End_Rlist = link;
         set_prev_link(link, 0);

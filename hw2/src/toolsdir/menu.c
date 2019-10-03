@@ -241,16 +241,11 @@ extern int menu_data_help_or_abort(prompt, abortstring, ptr_response)
 int menu_number_help_or_abort(char *prompt, char *abortstring, int low, int high, int *ptr_ival)
 {
     char *response, errprompt[80], numstring[MAX_MENU_RESPONSE_LENGTH];
-    int rval, check;
-
-    if (!(check = (low <= high)))
-        nbuffconcat(errprompt, 1, "Please enter a non-negative number...\n");
-    else
-        sprintf(errprompt, "Please enter a number between %d and %d\n", low, high);
+    int rval; //, check;
 
 reask:
-
     rval = menu_data_help_or_abort(prompt, abortstring, &response);
+
     switch (rval)
     {
     case MENU_EOF:
@@ -262,12 +257,33 @@ reask:
         remove_excess_blanks(numstring, response);
         switch (*ptr_ival = str_to_pos_int(numstring, 0, MAXINT))
         {
-        case -1:
-        case -2:
+        case 0:
+        case -1: // not digits
+            sprintf(errprompt, "Please enter a number between %d and %d\n", low, high);
+            //nbuffconcat(errprompt, 1, "Please enter a number between %d and %d\n", low, high);
+            fprintf(stderr, "%s", errprompt);
+            goto reask;
+            break;
+        case -2: // out of range (negative?)
+            nbuffconcat(errprompt, 1, "Please enter a non-negative number...\n");
             fprintf(stderr, "%s", errprompt);
             goto reask;
             break;
         default:
+            if (*ptr_ival < low)
+            {
+                nbuffconcat(errprompt, 1, "Please enter a non-negative number...\n");
+                fprintf(stderr, "%s", errprompt);
+                goto reask;
+                break;
+            }
+            if (*ptr_ival > high)
+            {
+                sprintf(errprompt, "Please enter a number between %d and %d\n", low, high);
+                fprintf(stderr, "%s", errprompt);
+                goto reask;
+                break;
+            }
             return (MENU_DATA);
             break;
         }

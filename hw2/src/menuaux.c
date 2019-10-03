@@ -58,8 +58,7 @@ reask:
 int rolo_menu_number_help_or_abort(char *prompt, int low, int high, int *ptr_ival)
 {
     int rval;
-    if (MENU_EOF == (rval = menu_number_help_or_abort(
-                         prompt, ABORTSTRING, low, high, ptr_ival)))
+    if (MENU_EOF == (rval = menu_number_help_or_abort(prompt, ABORTSTRING, low, high, ptr_ival)))
         user_eof();
     return (rval);
 }

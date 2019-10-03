@@ -62,7 +62,7 @@ int select_field_to_search_by(int *ptr_index, char **ptr_name)
 {
     char *response;
     int nchoices = N_BASIC_FIELDS;
-    int field_index, rval;
+    int field_index = 0, rval;
 
 redo:
 

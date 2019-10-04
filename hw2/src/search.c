@@ -101,6 +101,7 @@ reask:
         {
             *ptr_index = field_index - 1;
             *ptr_name = copystr(Field_Names[*ptr_index]);
+            // not free'd b/c inserted into arr
             return (0);
         }
 

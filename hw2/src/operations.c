@@ -20,6 +20,7 @@
 /** Mine */
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "operations.h"
 #include "menuaux.h"
@@ -122,11 +123,16 @@ kludge:
 
         case MENU_NO_MATCH:
             basicdata[j] = copystr(response);
+            // if (basicdata[j] == 0) {
+
+            // }
             if (j == 0 && strlen(basicdata[j]) == 0)
             {
                 printf("Each entry must have a name!\n");
+                //free(basicdata[j]);
                 goto redo;
             }
+            //free(basicdata[j]);
             break;
 
         case MENU_MATCH:

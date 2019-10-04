@@ -236,6 +236,7 @@ void interactive_rolo()
         case MENU_NO_MATCH:
             response = copystr(response);
             rolo_search_mode((int)R_NAME, Field_Names[(int)R_NAME], response);
+            //free(response);
             break;
 
         case MENU_MATCH:
@@ -252,6 +253,7 @@ void interactive_rolo()
                     break;
                 }
                 rolo_search_mode(field_index, field_name, search_string);
+                //free(search_string);
                 break;
             case M_PRINT_TO_LASER_PRINTER:
                 fprintf(stderr, "Not implemented\n");

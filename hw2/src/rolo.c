@@ -44,13 +44,18 @@ int in_search_mode = 0;
 
 char *rolo_emalloc(int size)
 {
+    // if (size <= 0) {
+    //     fprintf(stderr, "Fatal error:  invalid malloc amt\n");
+    //     save_and_exit(-1);
+    // }
     /* error handling memory allocator */
-    char *rval;
-    if (0 == (rval = malloc(size)))
+    char *rval = malloc(size);
+    if (rval == 0)
     {
         fprintf(stderr, "Fatal error:  out of memory\n");
         save_and_exit(-1);
     }
+
     return (rval);
 }
 
@@ -59,10 +64,10 @@ char *copystr(s) char *s;
 /* memory allocating string copy routine */
 
 {
-    char *copy;
     if (s == 0)
         return (0);
-    copy = rolo_emalloc(strlen(s));
+
+    char *copy = rolo_emalloc(strlen(s) + 1);
     strcpy(copy, s);
     return (copy);
 }

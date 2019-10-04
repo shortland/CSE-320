@@ -520,6 +520,10 @@ Bool all_whitespace(astring) char *astring;
 /* test whether every character is a blank or a tab */
 
 {
+    if (astring == NULL) {
+        return T;
+    }
+    //printf("the string is: %s", astring);
     register char ch;
     while ((ch = *astring++) != '\0')
     {

@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "rolo.h"
 #include "io.h"
 #include "clear.h"
 
@@ -39,14 +40,26 @@ Ptr_Rolo_List Current_Entry = 0;
 
 static char *rolofiledata;
 
+char **other_pointers;
+
+int free_io_mem() {
+    /** What a cool way ;)... if only i thought of it sooner. */
+    for (int i = 0; i < ALLOCATED_INDEX; i++) {
+        // printf("AT INDEX %d there is %p", i, ALLOCATED_MEM[i]);
+        free(ALLOCATED_MEM[i]);
+    }
+    return 0;
+}
+
 int read_rolodex(int fd)
 {
     struct stat statdata;
-    int filesize, i, j, k, start_of_others, warning_given;
+    int filesize = 0;
+    int i, j, k, start_of_others, warning_given;
     Ptr_Rolo_Entry newentry; //, oldentry, currententry; // TODO: unused
     Ptr_Rolo_List newlink, rptr;
     char *next_field, *next_other; //, *oldname, *currentname; // TODO: unused
-    char **other_pointers;
+    //char **other_pointers;
     int n_entries = 0;
 
     /* find out how many bytes are in the file */
@@ -110,7 +123,14 @@ int read_rolodex(int fd)
             rolofiledata[j] = '\0';
             j++;
             set_basic_rolo_field(i, newentry, next_field);
+            // if (newentry->other_fields != NULL) {
+            //     free(newentry->other_fields);
+            // }
+            //free(ne)
+            //free(newentry);
+            //free(newentry->basicfields[i]);
         }
+        //free(newlink);
 
         /* the end of an entry is indicated by two adjacent newlines */
 
@@ -177,6 +197,7 @@ int read_rolodex(int fd)
             reorder_file = 1;
         }
         rptr = get_next_link(rptr);
+        //free(rptr);
     }
 
     return (n_entries);

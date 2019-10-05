@@ -53,6 +53,7 @@ Ptr_Rolo_List create_entry(basicdata, otherdata) char **basicdata, **otherdata;
         {
             set_other_field(i, newentry, otherdata[i]);
         }
+        free(newentry->other_fields);
     }
     else
         newentry->other_fields = 0;

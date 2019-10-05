@@ -19,6 +19,7 @@
 /** Mine */
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "update.h"
 #include "rolo.h"
@@ -133,6 +134,7 @@ reask:
             {
                 printf("Previous updates to fields in this entry ignored\n");
             }
+            free(entry);
             return;
             break;
 

@@ -44,6 +44,9 @@ int in_search_mode = 0;
 char *rolo_emalloc(int size)
 {
     // if (size <= 0) {
+    //     save_and_exit(-1);
+    // }
+    // if (size <= 0) {
     //     fprintf(stderr, "Fatal error:  invalid malloc amt\n");
     //     save_and_exit(-1);
     // }
@@ -54,6 +57,9 @@ char *rolo_emalloc(int size)
         fprintf(stderr, "Fatal error:  out of memory\n");
         save_and_exit(-1);
     }
+
+    ALLOCATED_MEM[ALLOCATED_INDEX] = rval;
+    ALLOCATED_INDEX++;
 
     return (rval);
 }
@@ -102,10 +108,16 @@ void user_eof()
     save_and_exit(-1);
 }
 
-void roloexit(rval) int rval;
+void roloexit(int rval)
 {
-    if (rololocked)
+    if (rololocked) {
         unlink(homedir(ROLOLOCK));
+    }
+
+    if (free_io_mem() == -1) {
+        fprintf(stderr, "unable to free io prog mem");
+    }
+
     exit(rval);
 }
 
@@ -213,6 +225,8 @@ void locked_action()
 
 void rolo_main(int argc, char *argv[])
 {
+    ALLOCATED_INDEX = 0;
+
     OPTION_SUMMARY_FLAG = 0;
     OPTION_NOLOCK_FLAG = 0;
     OPTION_OTHERUSER_FLAG = 0;
@@ -303,7 +317,10 @@ void rolo_main(int argc, char *argv[])
         }
     }
     else {
-        strcpy(rolodir, user);
+        if (rolodir != strcpy(rolodir, user)) {
+            fprintf(stderr, "strcpy failed.");
+            roloexit(-1);
+        }
     }
 
     /* is the rolodex readable? */

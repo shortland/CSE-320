@@ -1,6 +1,8 @@
 #ifndef IO_C
 #define IO_C
 
+int free_io_mem();
+
 int write_rolo(FILE *fp1, FILE *fp2);
 
 void cathelpfile(char *filepath, char *helptopic, int clear);

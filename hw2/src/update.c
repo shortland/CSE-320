@@ -134,7 +134,7 @@ reask:
             {
                 printf("Previous updates to fields in this entry ignored\n");
             }
-            free(entry);
+            //free(entry);
             return;
             break;
 

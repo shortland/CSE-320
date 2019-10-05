@@ -18,6 +18,7 @@
 /** Mine */
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "io.h"
 #include "clear.h"
@@ -181,38 +182,84 @@ int read_rolodex(int fd)
     return (n_entries);
 }
 
-void write_rolo_list(fp) FILE *fp;
-
+int write_rolo_list(FILE *fp)
 /* write the entire in-core rolodex to a file */
-
 {
+    /** check how big the file is first */
+    int originalPos = ftell(fp);
+    fseek(fp, 0, SEEK_END);
+    int size = ftell(fp);
+    fseek(fp, originalPos, SEEK_SET);
+    //printf("the file is of size: %d", size);
 
     Ptr_Rolo_List rptr;
     Ptr_Rolo_Entry entry;
     int j;
 
     rptr = Begin_Rlist;
+    errno = 0;
 
     while (rptr != 0)
     {
         entry = get_entry(rptr);
         for (j = 0; j < N_BASIC_FIELDS; j++)
         {
-            fprintf(fp, "%s\n", get_basic_rolo_field(j, entry));
+            if (fprintf(fp, "%s\n", get_basic_rolo_field(j, entry)) == 0) {
+                fprintf(stderr, "0 bytes written");
+                return -1;
+            } else {
+                //printf("%d bytes were written", amt);
+            }
+            if (errno != 0) {
+                fprintf(stderr, "Error occured while writing rolo_list");
+                return -1;
+            }
         }
         for (j = 0; j < get_n_others(entry); j++)
         {
-            fprintf(fp, "%s\n", get_other_field(j, entry));
+            if (fprintf(fp, "%s\n", get_other_field(j, entry)) == 0) {
+                fprintf(stderr, "0 bytes written");
+                return -1;
+            } else {
+                //printf("%d bytes were written", amt);
+            }
+            if (errno != 0) {
+                fprintf(stderr, "Error occured while writing rolo_list");
+                return -1;
+            }
         }
         fprintf(fp, "\n");
         rptr = get_next_link(rptr);
+        if (errno != 0) {
+            fprintf(stderr, "Error occured while getting next link in rolo list write");
+            return -1;
+        }
     }
+    //printf("wrote %d bytes, so file should increase by that... otherwise roloexit(-1)", total);
+
+    originalPos = ftell(fp);
+    fseek(fp, 0, SEEK_END);
+    int newSize = ftell(fp);
+    fseek(fp, originalPos, SEEK_SET);
+    //printf("the file is NOW of size: %d", newSize);
+    
+    if (size == newSize) {
+        fprintf(stderr, "0 bytes written");
+        return -1;
+    }
+
+    return 0;
 }
 
-void write_rolo(FILE *fp1, FILE *fp2)
+int write_rolo(FILE *fp1, FILE *fp2)
 {
-    write_rolo_list(fp1);
-    write_rolo_list(fp2);
+    if (write_rolo_list(fp1) == -1) {
+        return -1;
+    }
+    if (write_rolo_list(fp2) == -1) {
+        return -1;
+    }
+    return 0;
 }
 
 void display_basic_field(name, value, show, up) char *name;

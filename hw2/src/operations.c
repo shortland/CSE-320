@@ -263,6 +263,9 @@ add_entry:
     display_entry(get_entry(rlink));
     if (add_the_entry())
     {
+        if (get_basic_rolo_field((int)R_NAME, get_entry(rlink)) == NULL) {
+            roloexit(-1);
+        }
         printf(
             "Adding entry for %s to rolodex\n",
             get_basic_rolo_field((int)R_NAME, get_entry(rlink)));

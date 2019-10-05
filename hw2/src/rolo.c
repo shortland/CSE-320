@@ -132,9 +132,18 @@ void save_to_disk()
         fprintf(stderr, "Any changes made have not been recorded\n");
         roloexit(-1);
     }
-    write_rolo(tempfp, copyfp);
-    fclose(tempfp);
-    fclose(copyfp);
+    if (write_rolo(tempfp, copyfp) == -1) {
+        fprintf(stderr, "Unable to write to file, maybe out of disk space?");
+        roloexit(-1);
+    }
+    if (fclose(tempfp) == EOF) {
+        fprintf(stderr, "error closing file");
+        roloexit(-1);
+    }
+    if (fclose(copyfp) == EOF) {
+        fprintf(stderr, "error closing file");
+        roloexit(-1);
+    }
     if (rename(strcpy(d1, homedir(ROLODATA)), strcpy(d2, homedir(ROLOBAK))) ||
         rename(strcpy(d1, homedir(ROLOTEMP)), strcpy(d2, homedir(ROLODATA))))
     {

@@ -1,7 +1,7 @@
 #ifndef IO_C
 #define IO_C
 
-void write_rolo(FILE *fp1, FILE *fp2);
+int write_rolo(FILE *fp1, FILE *fp2);
 
 void cathelpfile(char *filepath, char *helptopic, int clear);
 

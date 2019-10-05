@@ -5,7 +5,7 @@
 #define NOLOCKFLAG 'l'
 #define SUMMARYFLAG 's'
 #define OTHERUSERFLAG 'u'
-#define SHOWHELPFLAG 'h'
+// #define SHOWHELPFLAG 'h'
 
 #define LEGAL_OPTIONS "lsuh"
-#define USAGE "rolo [ person1 person2 ...] [ -h -l -s -u user ] "
+#define USAGE "rolo [ person1 person2 ...] [ -l -s -u user ] "

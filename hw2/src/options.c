@@ -12,7 +12,6 @@
 #else
 #include "ctools.h"
 #endif
-#include "args.h"
 #include "menu.h"
 #include "mem.h"
 
@@ -183,17 +182,21 @@ void look_for_person(char *person)
     }
 }
 
-void print_people()
+void print_people(char *argv[], int optind)
 {
-    int index;
     char *person;
-    index = 1;
-    while (T)
-    {
-        if (0 == (person = non_option_arg(index++)))
+    for (int i = optind; i <= NON_OPTION_ARGS; i++) {
+        if (NULL == (person = argv[i])) {
             break;
+        }
         look_for_person(person);
     }
+    // while (T)
+    // {
+    //     if (0 == (person = argv[optind]))
+    //         break;
+    //     look_for_person(person);
+    // }
 }
 
 void interactive_rolo()

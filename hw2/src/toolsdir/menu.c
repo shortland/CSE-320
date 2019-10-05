@@ -1,5 +1,4 @@
 #include <stdio.h>
-//#include <varargs.h>
 #include "ctools.h"
 #include "menu.h"
 #include "sys5.h"

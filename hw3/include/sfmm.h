@@ -178,7 +178,7 @@ typedef struct sf_epilogue {
  * and deletion of nodes from the list.
  */
 
-#define NUM_FREE_LISTS 8
+#define NUM_FREE_LISTS 9
 struct sf_block sf_free_list_heads[NUM_FREE_LISTS];
 
 /* sf_errno: will be set on error */

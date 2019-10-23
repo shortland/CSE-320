@@ -19,8 +19,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
-#include <readline/readline.h>
 
 #include "../include/task.h"
 #include "../include/debug.h"

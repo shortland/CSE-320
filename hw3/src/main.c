@@ -4,6 +4,9 @@
 int main(int argc, char const *argv[]) {
     sf_mem_init();
 
+    /** Testing */
+    sf_show_free_lists();
+
     double* ptr = sf_malloc(sizeof(double));
 
     *ptr = 320320320e-320;

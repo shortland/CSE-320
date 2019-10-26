@@ -355,8 +355,15 @@ void *find_fit(int block_size) {
 }
 
 size_t blocks_minimum_size(size_t size, int min) {
+    if (size < min) {
+        return min;
+    }
+
     size = size + 16;
     int amt = 16 - (size % 16);
+    if (amt == 16) {
+        amt = 0;
+    }
     amt = size + amt;
 
     //amt = amt + 16; // header and footer
@@ -515,9 +522,9 @@ void *sf_realloc(void *pp, size_t rsize) {
     current_allocated = (current_allocated & 0x2) >> 1;
     debug("the current block is %d (0 false (not), 1 true) allocated", current_allocated);
 
-    sf_header *next_header = (sf_header *)(pp + (current_header & 0xFFFFFFFC) + 8);
-    int next_allocated = (*next_header & 0x2) >> 1;
-    debug("the next block is %d (0 false (not), 1 true) allocated", next_allocated);
+    //sf_header *next_header = (sf_header *)(pp + (current_header & 0xFFFFFFFC) + 8);
+    // int next_allocated = (*next_header & 0x2) >> 1;
+    // debug("the next block is %d (0 false (not), 1 true) allocated", next_allocated);
 
     // typically, a block would always be allocated if its being re-sized/reallocated
     // NOTE: this might cause issues in the future if im not supposed to realloc a "non-allocated" block
@@ -573,6 +580,7 @@ void *sf_realloc(void *pp, size_t rsize) {
         }
     } else if (rsize > current_size) {
         debug("need to expand current block, maybe memgrow or coallesce or even going up a tier");
+        //void *ptr = sf_malloc();
     } else {
         debug("the given block is already the specified size");
 

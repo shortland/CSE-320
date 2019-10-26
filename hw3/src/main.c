@@ -10,18 +10,22 @@ int main(int argc, char const *argv[]) {
 
     // printf("%f\n", *ptr);
 
-    void *w = sf_malloc(8);
-    void *x = sf_malloc(200);
-    void *y = sf_malloc(300);
-    void *z = sf_malloc(4);
+    // void *w = sf_malloc(8);
+    // void *x = sf_malloc(200);
+    // void *y = sf_malloc(300);
+    // void *z = sf_malloc(4);
 
 
-    sf_free(w);
-    sf_free(x);
-    sf_free(y);
-    sf_free(z);
+    // sf_free(w);
+    // sf_free(x);
+    // sf_free(y);
+    // sf_free(z);
 
-    x=x;y=y;z=z;
+    // x=x;y=y;z=z;
+
+sf_malloc(1);
+void *x = sf_malloc(PAGE_SZ << 2);
+x=x;
 
     // double *ptr2 = sf_malloc(sizeof(double));
 

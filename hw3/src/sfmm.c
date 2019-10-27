@@ -46,6 +46,7 @@ void validate_block_integrity(sf_block *block)
     sf_footer *footer = ((void *)block) + size;
     size_t footer_data = *footer ^ sf_magic();
     size_t footer_size = (footer_data >> 2) << 2;
+    footer_size = footer_size;
     debug("the size of the footer is: %lu", footer_size);
 
     allocated = footer_data & 0x2;
@@ -639,6 +640,8 @@ size_t blocks_minimum_size(size_t size, size_t min)
  */
 void *sf_malloc(size_t size)
 {
+    sf_errno = 0;
+
     if (size == 0)
     {
         return NULL;
@@ -668,6 +671,8 @@ void *sf_malloc(size_t size)
  */
 void sf_free(void *pp)
 {
+    sf_errno = 0;
+
     if (pp == NULL)
     {
         debug("tried to pass in null pointer");
@@ -684,6 +689,7 @@ void sf_free(void *pp)
     }
 
     size_t size_of_block = (block->header >> 2) << 2;
+    size_of_block = size_of_block;
     debug("the size of the block im trying to free is: %lu", size_of_block);
 
     if ((sf_mem_start() + 40) > (void *)(&(block->header)))
@@ -770,8 +776,6 @@ void sf_free(void *pp)
         block = coalesce_blocks(block, next_block);
     }
 
-    sf_show_heap();
-
     return;
 }
 
@@ -782,6 +786,8 @@ void sf_free(void *pp)
  */
 void *sf_realloc(void *pp, size_t rsize)
 {
+    sf_errno = 0;
+
     if (rsize == 0)
     {
         debug("realloc called with size 0, will try to free.");
@@ -805,6 +811,7 @@ void *sf_realloc(void *pp, size_t rsize)
     if (pp == NULL)
     {
         debug("tried to pass in null pointer");
+        sf_errno = EINVAL;
         abort();
     }
 
@@ -814,10 +821,12 @@ void *sf_realloc(void *pp, size_t rsize)
     if ((block->header & 0x2) == 0)
     {
         debug("tried to realloc a non-allocated block at %p", block);
+        sf_errno = EINVAL;
         abort();
     }
 
     size_t size_of_block = (block->header >> 2) << 2;
+    size_of_block = size_of_block;
     debug("the size of the block im trying to realloc is: %lu", size_of_block);
 
     if ((sf_mem_start() + 40) > (void *)(&(block->header)))
@@ -825,6 +834,7 @@ void *sf_realloc(void *pp, size_t rsize)
         debug("tried to realloc block not starting in heap");
         debug("start: %p", (sf_mem_start() + 40));
         debug("pointing: %p", (void *)(&(block->header)));
+        sf_errno = EINVAL;
         abort();
     }
 
@@ -832,12 +842,14 @@ void *sf_realloc(void *pp, size_t rsize)
     if (footer_addr > (sf_mem_end() - 8))
     {
         debug("tried to realloc block not ending in heap %p is footer;; %p is end of heap", footer_addr, sf_mem_end() - 8);
+        sf_errno = EINVAL;
         abort();
     }
 
     if (((block->header >> 2) << 2) < 32)
     {
         debug("tried to realloc a block that has a size smaller than permitted minimum");
+        sf_errno = EINVAL;
         abort();
     }
 
@@ -848,6 +860,7 @@ void *sf_realloc(void *pp, size_t rsize)
         if (*((sf_header *)((void *)(&block->header) - 0 - (((*((sf_footer *)((void *)(&block->header) - 8)) ^ sf_magic()) >> 2) << 2))) & 0x2)
         {
             debug("the previous header block says it IS allocated");
+            sf_errno = EINVAL;
             abort();
         }
     }
@@ -855,6 +868,7 @@ void *sf_realloc(void *pp, size_t rsize)
     if ((*((sf_footer *)((((void *)(&block->header)) + ((block->header >> 2) << 2)) - 8)) ^ sf_magic()) != block->header)
     {
         debug("footer and header do not match");
+        sf_errno = EINVAL;
         abort();
     }
 
@@ -869,6 +883,7 @@ void *sf_realloc(void *pp, size_t rsize)
         if (new_block == NULL)
         {
             error("unable to malloc a larger block");
+            sf_errno = ENOMEM;
             return NULL;
         }
 

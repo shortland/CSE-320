@@ -49,8 +49,6 @@ Test(sf_memsuite_student, malloc_three_pages, .init = sf_mem_init, .fini = sf_me
 	sf_errno = 0;
 	void *x = sf_malloc(3 * PAGE_SZ - 2 * sizeof(sf_block));
 
-	//sf_show_heap();
-
 	cr_assert_not_null(x, "x is NULL!");
 	assert_free_block_count(0, 0);
 	cr_assert(sf_errno == 0, "sf_errno is not 0!");
@@ -59,8 +57,6 @@ Test(sf_memsuite_student, malloc_three_pages, .init = sf_mem_init, .fini = sf_me
 Test(sf_memsuite_student, malloc_over_four_pages, .init = sf_mem_init, .fini = sf_mem_fini) {
 	sf_errno = 0;
 	void *x = sf_malloc(PAGE_SZ << 2);
-
-	//sf_show_heap();
 
 	cr_assert_null(x, "x is not NULL!");
 	assert_free_block_count(0, 1);
@@ -140,8 +136,6 @@ Test(sf_memsuite_student, realloc_larger_block, .init = sf_mem_init, .fini = sf_
 	/* void *y = */ sf_malloc(10);
 	x = sf_realloc(x, sizeof(int) * 10);
 
-	//sf_show_heap();
-
 	cr_assert_not_null(x, "x is NULL!");
 	sf_block *bp = (sf_block *)((char *)x - 2*sizeof(sf_header));
 	cr_assert(bp->header & THIS_BLOCK_ALLOCATED, "Allocated bit is not set!");
@@ -169,8 +163,6 @@ Test(sf_memsuite_student, realloc_smaller_block_splinter, .init = sf_mem_init, .
 
 Test(sf_memsuite_student, realloc_smaller_block_free_block, .init = sf_mem_init, .fini = sf_mem_fini) {
 	void *x = sf_malloc(sizeof(double) * 8);
-
-//sf_show_heap();
 
 	void *y = sf_realloc(x, sizeof(int));
 
@@ -221,6 +213,7 @@ void assert_block_integrity(sf_block *block)
     sf_footer *footer = ((void *)block) + size;
     size_t footer_data = *footer ^ sf_magic();
     size_t footer_size = (footer_data >> 2) << 2;
+    footer_size = footer_size;
     debug("the size of the footer is: %ld", footer_size);
 
     allocated = footer_data & 0x2;

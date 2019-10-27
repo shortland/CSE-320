@@ -28,14 +28,6 @@ void assert_free_block_count(size_t size, int count) {
 		 size, count, cnt);
 }
 
-void assert_normal_exit(int status) {
-    cr_assert_eq(status, 0, "Did not exit normally (status = 0x%x).\n", status);
-}
-
-void assert_error_exit(int status) {
-    cr_assert_eq(WEXITSTATUS(status), 0xff, "Did not exit with status 0xff (status was 0x%x).\n", status);
-}
-
 Test(sf_memsuite_student, malloc_an_Integer_check_freelist, .init = sf_mem_init, .fini = sf_mem_fini) {
 	sf_errno = 0;
 	int *x = sf_malloc(sizeof(int));
@@ -200,12 +192,60 @@ Test(sf_memsuite_student, realloc_smaller_block_free_block, .init = sf_mem_init,
 //############################################
 
 /**
+ * Validates the block integrity by checking whether the header
+ * and the footer are equivalent (after sf_magic()) to one another.
+ */
+void assert_block_integrity(sf_block *block)
+{
+    size_t size = (block->header >> 2) << 2;
+    debug("the size of the block is %ld", size);
+
+    if (size == 0)
+    {
+        debug("stopping, since its expected to just be an epilogue");
+        return;
+    }
+
+    int allocated = block->header & 0x2;
+    int prev_allocated = block->header & 0x1;
+    if (allocated == 2)
+    {
+        debug("header: the block is allocated");
+    }
+
+    if (prev_allocated == 1)
+    {
+        debug("header: the prev block is allocated");
+    }
+
+    sf_footer *footer = ((void *)block) + size;
+    size_t footer_data = *footer ^ sf_magic();
+    size_t footer_size = (footer_data >> 2) << 2;
+    debug("the size of the footer is: %ld", footer_size);
+
+    allocated = footer_data & 0x2;
+    prev_allocated = footer_data & 0x1;
+    if (allocated == 2)
+    {
+        debug("footer: the block is allocated");
+    }
+
+    if (prev_allocated == 1)
+    {
+        debug("footer: the prev block is allocated");
+    }
+
+    cr_assert(block->header == footer_data, "mismatch of block footer and header");
+}
+
+
+/**
  * This test allocates all the space from the first block,
  * Then attempts to malloc more space which must result in a memgrow.
  * This checks whether a students code actually calls mem_grow on a heap
  * that is 100% full with no splinters/free blocks.
  */
-Test(sf_memsuite_student, zmem_grow_called_on_full_heap, .init = sf_mem_init, .fini = sf_mem_fini) {
+Test(sf_memsuite_student, mem_grow_called_on_full_heap, .init = sf_mem_init, .fini = sf_mem_fini) {
 	sf_errno = 0;
 	void *x = sf_malloc(4032);
 
@@ -254,33 +294,116 @@ Test(sf_memsuite_student, comprehensive_scattered_coalescing, .init = sf_mem_ini
 	cr_assert(sf_errno == 0, "sf_errno is not 0!");
 }
 
-// Test(sf_memsuite_student, free_block_not_in_heap, .init = sf_mem_init, .fini = sf_mem_fini) {
-// 	sf_errno = 0;
+/**
+ * Asserts the block footer and headers to ensure they're equivalent after
+ */
+Test(sf_memsuite_student, block_header_footer_fidelity, .init = sf_mem_init, .fini = sf_mem_fini) {
+	sf_errno = 0;
 
-// 	sf_block ok;
-// 	ok.header = 32 | 3;
-// 	sf_footer nok;
-// 	nok = ok.header ^ sf_magic();
-// 	nok=nok;
-// 	// even though nok is not used, it's technically in memory directly asfter the block ok
-// 	// since it was declared right afterwards.
+	void *x = sf_malloc(1234);
+	assert_block_integrity(x - 16);
+	assert_free_block_count(2784, 1);
 
-// 	sf_free(&ok);
-// 	cr_assert(sf_errno == 0, "sf_errno is not 0!");
-// }
+	void *y = sf_realloc(x, 321);
+	assert_block_integrity(x - 16);
+	assert_block_integrity(y - 16);
+	assert_free_block_count(3696, 1);
 
-// realloc on a free block should be false
-// Test(sf_memsuite_student, zrealloc_freed_block, .init = sf_mem_init, .fini = sf_mem_fini) {
-// 	sf_errno = 0;
-// 	void *x = sf_malloc(96);
-// 	sf_free(x);
-// 	sf_realloc(x, 40);
+	sf_free(y);
+	assert_free_block_count(4048, 1);
 
-// 	cr_assert_not_null(x, "x is NULL!");
-// 	assert_free_block_count(0, 1);
-// 	cr_assert(sf_errno == 0, "sf_errno is not 0!");
-// }
+	cr_assert(sf_errno == 0, "sf_errno is not 0!");
+}
 
-// char *name = "invalid_search_test";
-//     int err = run_using_system(name, "", "");
-//     assert_normal_exit(err);
+/**
+ * Make sure the test aborts() when trying to free a block not in the heap
+ * (within bounds of prologue and epilogue)
+ */
+Test(sf_memsuite_student, free_block_not_in_heap, .signal = SIGABRT, .init = sf_mem_init, .fini = sf_mem_fini) {
+	sf_errno = 0;
+
+	sf_block ok;
+	ok.header = 32 | 3;
+	sf_footer nok;
+	nok = ok.header ^ sf_magic();
+	nok=nok;
+	// even though nok is not used, it's technically in memory directly asfter the block ok
+	// since it was declared right afterwards.
+
+	sf_free(ok.body.payload);
+}
+
+/**
+ * Attempt to realloc a free block (should abort)
+ */
+Test(sf_memsuite_student, realloc_freed_block, .signal = SIGABRT, .init = sf_mem_init, .fini = sf_mem_fini) {
+	sf_errno = 0;
+	void *x = sf_malloc(96);
+	sf_free(x);
+	sf_realloc(x, 40);
+}
+
+/**
+ * Realloc to size 0 makes the program free the block
+ */
+Test(sf_memsuite_student, realloc_zero_frees_block, .init = sf_mem_init, .fini = sf_mem_fini) {
+	sf_errno = 0;
+
+	void *x = sf_malloc(1234);
+	void *y = sf_realloc(x, 0);
+
+	cr_assert_null(y, "y is not null!");
+
+	assert_free_block_count(4048, 1);
+
+	cr_assert(sf_errno == 0, "sf_errno is not 0!");
+}
+
+/**
+ * Malloc a negative number should not crash, b/c its parameter is unsigned int (size_t)
+ * Technically is exiting with ENOMEM, but I won't hardcode that... b/c we might be able
+ * to actually allocate that much memory - given that sf_mem_grow() would allow us.
+ */
+Test(sf_memsuite_student, malloc_negative_num, .init = sf_mem_init, .fini = sf_mem_fini) {
+	sf_errno = 0;
+
+	void *x = sf_malloc(-124);
+
+	cr_assert_null(x, "x is not NULL!");
+	// cr_assert(sf_errno == ENOMEM, "sf_errno is not ENOMEM!");
+}
+
+/**
+ * Realloc a negative number, same as above scenario.
+ * This specific case wouldn't typically exit with ENOMEM,
+ * since the size_t type overflows when trying to make it a multiple of 16.
+ */
+Test(sf_memsuite_student, realloc_negative_num_overflows, .init = sf_mem_init, .fini = sf_mem_fini) {
+	void *x = sf_malloc(124);
+	x = sf_realloc(x, -10);
+
+	cr_assert_null(x, "x is not NULL!");
+}
+
+/**
+ * Malloc same as above (uint overflows) - thus would definitely not produce ENOMEM
+ */
+Test(sf_memsuite_student, malloc_negative_num_overflows, .init = sf_mem_init, .fini = sf_mem_fini) {
+	void *x = sf_malloc(-10);
+
+	cr_assert_null(x, "x is not NULL!");
+}
+
+/**
+ * Malloc basic fuzzer test,
+ * Mostly checking that it doesn't crash with a "pseudo-random" input
+ */
+Test(sf_memsuite_student, zmalloc_fuzzer, .init = sf_mem_init, .fini = sf_mem_fini) {
+	sf_errno = 0;
+
+	//size_t largest = 2147483647;
+	size_t largest = 10000;
+	for (size_t i = 0; i < largest; i++) {
+		sf_malloc(rand());
+	}
+}

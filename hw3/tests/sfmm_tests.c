@@ -1,6 +1,7 @@
 #include <criterion/criterion.h>
 #include <errno.h>
 #include <signal.h>
+#include <sys/wait.h>
 #include "debug.h"
 #include "sfmm.h"
 
@@ -27,6 +28,14 @@ void assert_free_block_count(size_t size, int count) {
 		 size, count, cnt);
 }
 
+void assert_normal_exit(int status) {
+    cr_assert_eq(status, 0, "Did not exit normally (status = 0x%x).\n", status);
+}
+
+void assert_error_exit(int status) {
+    cr_assert_eq(WEXITSTATUS(status), 0xff, "Did not exit with status 0xff (status was 0x%x).\n", status);
+}
+
 Test(sf_memsuite_student, malloc_an_Integer_check_freelist, .init = sf_mem_init, .fini = sf_mem_fini) {
 	sf_errno = 0;
 	int *x = sf_malloc(sizeof(int));
@@ -48,6 +57,8 @@ Test(sf_memsuite_student, malloc_three_pages, .init = sf_mem_init, .fini = sf_me
 	sf_errno = 0;
 	void *x = sf_malloc(3 * PAGE_SZ - 2 * sizeof(sf_block));
 
+	//sf_show_heap();
+
 	cr_assert_not_null(x, "x is NULL!");
 	assert_free_block_count(0, 0);
 	cr_assert(sf_errno == 0, "sf_errno is not 0!");
@@ -56,6 +67,8 @@ Test(sf_memsuite_student, malloc_three_pages, .init = sf_mem_init, .fini = sf_me
 Test(sf_memsuite_student, malloc_over_four_pages, .init = sf_mem_init, .fini = sf_mem_fini) {
 	sf_errno = 0;
 	void *x = sf_malloc(PAGE_SZ << 2);
+
+	//sf_show_heap();
 
 	cr_assert_null(x, "x is not NULL!");
 	assert_free_block_count(0, 1);
@@ -135,6 +148,8 @@ Test(sf_memsuite_student, realloc_larger_block, .init = sf_mem_init, .fini = sf_
 	/* void *y = */ sf_malloc(10);
 	x = sf_realloc(x, sizeof(int) * 10);
 
+	//sf_show_heap();
+
 	cr_assert_not_null(x, "x is NULL!");
 	sf_block *bp = (sf_block *)((char *)x - 2*sizeof(sf_header));
 	cr_assert(bp->header & THIS_BLOCK_ALLOCATED, "Allocated bit is not set!");
@@ -162,6 +177,9 @@ Test(sf_memsuite_student, realloc_smaller_block_splinter, .init = sf_mem_init, .
 
 Test(sf_memsuite_student, realloc_smaller_block_free_block, .init = sf_mem_init, .fini = sf_mem_fini) {
 	void *x = sf_malloc(sizeof(double) * 8);
+
+//sf_show_heap();
+
 	void *y = sf_realloc(x, sizeof(int));
 
 	cr_assert_not_null(y, "y is NULL!");
@@ -181,3 +199,88 @@ Test(sf_memsuite_student, realloc_smaller_block_free_block, .init = sf_mem_init,
 //DO NOT DELETE THESE COMMENTS
 //############################################
 
+/**
+ * This test allocates all the space from the first block,
+ * Then attempts to malloc more space which must result in a memgrow.
+ * This checks whether a students code actually calls mem_grow on a heap
+ * that is 100% full with no splinters/free blocks.
+ */
+Test(sf_memsuite_student, zmem_grow_called_on_full_heap, .init = sf_mem_init, .fini = sf_mem_fini) {
+	sf_errno = 0;
+	void *x = sf_malloc(4032);
+
+	assert_free_block_count(0, 0);
+
+	sf_malloc(1);
+
+	assert_free_block_count(4064, 1);
+
+	cr_assert_not_null(x, "x is NULL!");
+	cr_assert(sf_errno == 0, "sf_errno is not 0!");
+}
+
+/**
+ * This test is very general, but its purpose is to check whether the coalescing and
+ * free-ing of the programs ability is intact
+ */
+Test(sf_memsuite_student, comprehensive_scattered_coalescing, .init = sf_mem_init, .fini = sf_mem_fini) {
+	sf_errno = 0;
+	void *a = sf_malloc(64);
+	void *b = sf_malloc(64);
+	void *c = sf_malloc(64);
+	void *d = sf_malloc(64);
+	void *e = sf_malloc(64);
+	void *f = sf_malloc(64);
+
+	sf_free(a);
+	sf_free(c);
+	sf_free(e);
+
+	cr_assert_not_null(a, "x is NULL!");
+	cr_assert_not_null(b, "x is NULL!");
+	cr_assert_not_null(c, "x is NULL!");
+	cr_assert_not_null(d, "x is NULL!");
+	cr_assert_not_null(e, "x is NULL!");
+	cr_assert_not_null(f, "x is NULL!");
+
+	assert_free_block_count(0, 4);
+
+	sf_free(b);
+	sf_free(d);
+	sf_free(f);
+
+	assert_free_block_count(0, 1);
+
+	cr_assert(sf_errno == 0, "sf_errno is not 0!");
+}
+
+// Test(sf_memsuite_student, free_block_not_in_heap, .init = sf_mem_init, .fini = sf_mem_fini) {
+// 	sf_errno = 0;
+
+// 	sf_block ok;
+// 	ok.header = 32 | 3;
+// 	sf_footer nok;
+// 	nok = ok.header ^ sf_magic();
+// 	nok=nok;
+// 	// even though nok is not used, it's technically in memory directly asfter the block ok
+// 	// since it was declared right afterwards.
+
+// 	sf_free(&ok);
+// 	cr_assert(sf_errno == 0, "sf_errno is not 0!");
+// }
+
+// realloc on a free block should be false
+// Test(sf_memsuite_student, zrealloc_freed_block, .init = sf_mem_init, .fini = sf_mem_fini) {
+// 	sf_errno = 0;
+// 	void *x = sf_malloc(96);
+// 	sf_free(x);
+// 	sf_realloc(x, 40);
+
+// 	cr_assert_not_null(x, "x is NULL!");
+// 	assert_free_block_count(0, 1);
+// 	cr_assert(sf_errno == 0, "sf_errno is not 0!");
+// }
+
+// char *name = "invalid_search_test";
+//     int err = run_using_system(name, "", "");
+//     assert_normal_exit(err);

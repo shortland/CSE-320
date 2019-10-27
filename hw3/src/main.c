@@ -23,17 +23,39 @@ int main(int argc, char const *argv[]) {
 
     // x=x;y=y;z=z;
 
-void *x = sf_malloc(sizeof(double) * 8);
+            // void *x = sf_malloc(sizeof(double) * 8);
 
-sf_show_heap();
+            // int *y = sf_realloc(x, sizeof(int));
 
-int *y = sf_realloc(x, sizeof(int));
+            // sf_realloc(y, 3900);
 
-*y = 321;
-printf("y has %d\n", *y);
+            // int *zz = sf_malloc(80);
+            // //sf_free(zz);
+            // zz=zz;
+            // sf_malloc(17);
+            // sf_malloc(4048);
+            // int *z = sf_malloc(4064);
+            // *z = 999;
+            // sf_realloc(z, 148);
 
-sf_show_heap();
-y=y;
+            // *y = 321;
+            // printf("y has %d\n", *y);
+            // y=y;
+
+
+    sf_errno = 0;
+
+    sf_block ok;
+    ok.header = 32 | 3;
+    sf_footer nok;
+    nok = ok.header ^ sf_magic();
+    nok=nok;
+    // even though nok is not used, it's technically in memory directly asfter the block ok
+    // since it was declared right afterwards.
+
+    sf_free(&ok);
+
+//z=z;
 // sf_malloc(1);
 // void *x = sf_malloc(PAGE_SZ << 2);
 // x=x;

@@ -20,22 +20,26 @@
  * Validates the block integrity by checking whether the header
  * and the footer are equivalent (after sf_magic()) to one another.
  */
-void validate_block_integrity(sf_block *block) {
+void validate_block_integrity(sf_block *block)
+{
     size_t size = (block->header >> 2) << 2;
     debug("the size of the block is %ld", size);
 
-    if (size == 0) {
+    if (size == 0)
+    {
         debug("stopping, since its expected to just be an epilogue");
         return;
     }
 
     int allocated = block->header & 0x2;
     int prev_allocated = block->header & 0x1;
-    if (allocated == 2) {
+    if (allocated == 2)
+    {
         debug("header: the block is allocated");
     }
 
-    if (prev_allocated == 1) {
+    if (prev_allocated == 1)
+    {
         debug("header: the prev block is allocated");
     }
 
@@ -46,15 +50,18 @@ void validate_block_integrity(sf_block *block) {
 
     allocated = footer_data & 0x2;
     prev_allocated = footer_data & 0x1;
-    if (allocated == 2) {
+    if (allocated == 2)
+    {
         debug("footer: the block is allocated");
     }
 
-    if (prev_allocated == 1) {
+    if (prev_allocated == 1)
+    {
         debug("footer: the prev block is allocated");
     }
 
-    if (block->header != footer_data) {
+    if (block->header != footer_data)
+    {
         error("mismatch of footer and header");
         abort();
     }
@@ -64,20 +71,24 @@ void validate_block_integrity(sf_block *block) {
  * Find & return an empty block of at least block_size.
  * Begins search at the free-list index, index.
  */
-void *find_empty_block(int index, size_t block_size) {
+void *find_empty_block(int index, size_t block_size)
+{
     void *first;
     void *next;
 
-    for (int i = index; i < NUM_FREE_LISTS; i++) {
+    for (int i = index; i < NUM_FREE_LISTS; i++)
+    {
         first = &sf_free_list_heads[i];
         next = sf_free_list_heads[i].body.links.next;
 
-        while (first != next) {
+        while (first != next)
+        {
             debug("found non matching block; aka non-sentinel.");
             next = ((sf_block *)next)->body.links.next;
         }
 
-        if (first != ((sf_block *)next)->body.links.prev) {
+        if (first != ((sf_block *)next)->body.links.prev)
+        {
             debug("returned next of %p", ((sf_block *)next)->body.links.prev);
             return ((sf_block *)next)->body.links.prev;
         }
@@ -90,7 +101,8 @@ void *find_empty_block(int index, size_t block_size) {
 /**
  * Add a specified block ptr to the specified free-list index
  */
-void add_block_in_list(void *ptr, int index) {
+void add_block_in_list(void *ptr, int index)
+{
     sf_block *block = (sf_block *)ptr;
     sf_block *sentinel = &sf_free_list_heads[index];
 
@@ -104,16 +116,20 @@ void add_block_in_list(void *ptr, int index) {
 /**
  * Checks whether a block exists in any free-list
  */
-int exists_block_in_list(sf_block *ptr) {
+int exists_block_in_list(sf_block *ptr)
+{
     sf_block *first;
     sf_block *next;
 
-    for (int i = 0; i < NUM_FREE_LISTS; i++) {
+    for (int i = 0; i < NUM_FREE_LISTS; i++)
+    {
         first = &sf_free_list_heads[i];
         next = sf_free_list_heads[i].body.links.next;
 
-        while (first != next) {
-            if (next == ptr) {
+        while (first != next)
+        {
+            if (next == ptr)
+            {
                 debug("found the block in a list");
                 return 1;
             }
@@ -128,10 +144,12 @@ int exists_block_in_list(sf_block *ptr) {
 /**
  * Remove the specified block from its free-list.
  */
-void remove_block_in_list(void *ptr) {
+void remove_block_in_list(void *ptr)
+{
     sf_block *block = (sf_block *)ptr;
 
-    if (exists_block_in_list(block) == 0) {
+    if (exists_block_in_list(block) == 0)
+    {
         debug("block was not found in any list");
         return;
     }
@@ -144,15 +162,18 @@ void remove_block_in_list(void *ptr) {
  * This function is called once, when the initial sf_mem_grow() is called.
  * It creates the initial prologue, epilogue and first block.
  */
-void *initialize_first_memgrow(void *sentinel) {
+void *initialize_first_memgrow(void *sentinel)
+{
     void *page_start = sf_mem_grow();
-    if (page_start == NULL) {
+    if (page_start == NULL)
+    {
         error("first initial call the sf_mem_grow() failed");
         return NULL;
     }
 
     debug("succesfully got start of new page at %p", page_start);
-    if (sf_mem_start() == sf_mem_end()) {
+    if (sf_mem_start() == sf_mem_end())
+    {
         error("mem_grow supposedly succeeded, but start and end of the page is still the same");
         return NULL;
     }
@@ -193,25 +214,44 @@ void *initialize_first_memgrow(void *sentinel) {
  * Determine which free-list a block of the specified size belongs to.
  * Yeah, this definitely can be done in a few lines...
  */
-int which_free_list_minimum(int size) {
-    if (size == MINIMUM_BLOCK_SIZE) {
+int which_free_list_minimum(int size)
+{
+    if (size == MINIMUM_BLOCK_SIZE)
+    {
         return 0;
-    } else {
-        if (size > MINIMUM_BLOCK_SIZE && size <= 2 * MINIMUM_BLOCK_SIZE) {
+    }
+    else
+    {
+        if (size > MINIMUM_BLOCK_SIZE && size <= 2 * MINIMUM_BLOCK_SIZE)
+        {
             return 1;
-        } else if (size > 2 * MINIMUM_BLOCK_SIZE && size <= 4 * MINIMUM_BLOCK_SIZE) {
+        }
+        else if (size > 2 * MINIMUM_BLOCK_SIZE && size <= 4 * MINIMUM_BLOCK_SIZE)
+        {
             return 2;
-        } else if (size > 4 * MINIMUM_BLOCK_SIZE && size <= 8 * MINIMUM_BLOCK_SIZE) {
+        }
+        else if (size > 4 * MINIMUM_BLOCK_SIZE && size <= 8 * MINIMUM_BLOCK_SIZE)
+        {
             return 3;
-        } else if (size > 8 * MINIMUM_BLOCK_SIZE && size <= 16 * MINIMUM_BLOCK_SIZE) {
+        }
+        else if (size > 8 * MINIMUM_BLOCK_SIZE && size <= 16 * MINIMUM_BLOCK_SIZE)
+        {
             return 4;
-        } else if (size > 16 * MINIMUM_BLOCK_SIZE && size <= 32 * MINIMUM_BLOCK_SIZE) {
+        }
+        else if (size > 16 * MINIMUM_BLOCK_SIZE && size <= 32 * MINIMUM_BLOCK_SIZE)
+        {
             return 5;
-        } else if (size > 32 * MINIMUM_BLOCK_SIZE && size <= 64 * MINIMUM_BLOCK_SIZE) {
+        }
+        else if (size > 32 * MINIMUM_BLOCK_SIZE && size <= 64 * MINIMUM_BLOCK_SIZE)
+        {
             return 6;
-        } else if (size > 64 * MINIMUM_BLOCK_SIZE && size <= 128 * MINIMUM_BLOCK_SIZE) {
+        }
+        else if (size > 64 * MINIMUM_BLOCK_SIZE && size <= 128 * MINIMUM_BLOCK_SIZE)
+        {
             return 7;
-        } else {
+        }
+        else
+        {
             return 8;
         }
     }
@@ -224,7 +264,8 @@ int which_free_list_minimum(int size) {
  * Very simple and straightforward. 
  * Assumes the are both free.
  */
-sf_block *coalesce_blocks(sf_block *first, sf_block *second) {
+sf_block *coalesce_blocks(sf_block *first, sf_block *second)
+{
     // remove the blocks from any free-lists
     remove_block_in_list(first);
     remove_block_in_list(second);
@@ -258,7 +299,8 @@ sf_block *coalesce_blocks(sf_block *first, sf_block *second) {
  * Takes a pointer to a block, and splits it into rsize.
  * A more specified type of "realloc(),..." where it only reallocates to a smaller size.
  */
-void *split_down(void *pp, size_t rsize) {
+void *split_down(void *pp, size_t rsize)
+{
     debug("new calculated split down size is: %ld", rsize);
 
     size_t current_header = ((sf_block *)(pp))->header;
@@ -271,95 +313,97 @@ void *split_down(void *pp, size_t rsize) {
     current_allocated = (current_allocated & 0x2) >> 1;
     debug("the current block is %d (0 false (not), 1 true) allocated", current_allocated);
 
-    //sf_header *next_header = (sf_header *)(pp + (current_header & 0xFFFFFFFC) + 8);
-    // int next_allocated = (*next_header & 0x2) >> 1;
-    // debug("the next block is %d (0 false (not), 1 true) allocated", next_allocated);
-
-    // typically, a block would always be allocated if its being re-sized/reallocated
-    // NOTE: this might cause issues in the future if im not supposed to realloc a "non-allocated" block
-
     size_t current_size = ((sf_block *)(pp))->header;
     current_size = current_size >> 2;
     current_size = current_size << 2;
     debug("the current_size is %ld, will change it to a size of %ld", current_size, rsize);
 
-    if (rsize < current_size) {
+    // determine if we really are supposed to shrink the block...
+    if (rsize < current_size)
+    {
         debug("will shrink current block.");
 
-        if (current_size - rsize < 32) {
+        if (current_size - rsize < 32)
+        {
             debug("splitting will cause a splinter, so just resize header - which makes padding aka internal fragmentation");
-            // but can't really resize header... since block is already said size... so do nothing :]
             return (void *)((sf_block *)pp)->body.payload;
-        } else {
-            debug("the remaining block size is greater than the minimum block size of 32. so size down into 2.");
-
-            // change the previous blocks header
-            sf_block *old_block = (sf_block *)pp;
-            if (previous_allocated == 1) {
-                old_block->header = rsize | 0x3;
-            } else {
-                old_block->header = rsize | 0x2;
-            }
-
-            sf_footer prev_footer = old_block->header ^ sf_magic();
-
-            size_t new_next_header = (current_size - rsize) | 0x1;
-
-            sf_block *new_split = pp + rsize;
-
-            /**
-             * Remove pp from list.
-             * Get new index for new_split size
-             * Add new_split at new_split index
-             */
-            remove_block_in_list(pp);
-            debug("removed %p from free-list", pp);
-            add_block_in_list(new_split, which_free_list_minimum(current_size - rsize));
-            debug("added the free block to a free-list");
-
-            // new split should be all free, but im forcing it to be allocated - s.t. we can directly call free on it
-            new_split->header = new_next_header | 0x2;
-            new_split->prev_footer = prev_footer;
-            sf_footer *new_loose_footer = (sf_footer *)(pp + rsize + (current_size - rsize));
-            *(new_loose_footer) = new_split->header ^ sf_magic();
-            remove_block_in_list(new_split);
-
-            // need to set the prev-alloc bit of the next block header and footer
-            //sf_block *next_block = (sf_block *)((void *)new_split + ((new_split->header >> 2) << 2));
-            size_t next_next_header = *((sf_header *)(((void *)new_loose_footer) + 8));
-            validate_block_integrity(new_split);
-            validate_block_integrity(old_block);
-            debug("the value of the next header is: %ld", next_next_header);
-
-            if ( ((next_next_header >> 2) << 2) == 0) {
-                debug("next block is an epilogue, so just set the that");
-                next_next_header = next_next_header | 0x2;
-            } else {
-                sf_block *next_block = (sf_block *)((void *)new_split + ((new_split->header >> 2) << 2));
-                next_block->header = next_block->header | 0x1;
-                debug("next block is a real block that i need the change the prev-alloc bits for");
-                sf_footer *loose_footer = ((void *)next_block) + (((next_block->header >> 2) << 2));
-                *loose_footer = next_block->header ^ sf_magic();
-            }
-
-            debug("free the split off portion");
-            sf_free(new_split->body.payload);
-
-            return (void *)old_block->body.payload;
         }
-    } else if (rsize > current_size) {
+
+        debug("the remaining block size is greater than the minimum block size of 32. so size down into 2.");
+
+        // change the previous blocks header
+        sf_block *old_block = (sf_block *)pp;
+        if (previous_allocated == 1)
+        {
+            old_block->header = rsize | 0x3;
+        }
+        else
+        {
+            old_block->header = rsize | 0x2;
+        }
+
+        sf_footer prev_footer = old_block->header ^ sf_magic();
+        size_t new_next_header = (current_size - rsize) | 0x1;
+        sf_block *new_split = pp + rsize;
+
+        /**
+         * Remove pp from list.
+         * Get new index for new_split size
+         * Add new_split at new_split index
+         */
+        remove_block_in_list(pp);
+        debug("removed %p from free-list", pp);
+        add_block_in_list(new_split, which_free_list_minimum(current_size - rsize));
+        debug("added the free block to a free-list");
+
+        // new split should be all free, but im forcing it to be allocated - s.t. we can directly call free on it
+        new_split->header = new_next_header | 0x2;
+        new_split->prev_footer = prev_footer;
+        sf_footer *new_loose_footer = (sf_footer *)(pp + rsize + (current_size - rsize));
+        *(new_loose_footer) = new_split->header ^ sf_magic();
+        remove_block_in_list(new_split);
+
+        // need to set the prev-alloc bit of the next block header and footer
+        //sf_block *next_block = (sf_block *)((void *)new_split + ((new_split->header >> 2) << 2));
+        size_t next_next_header = *((sf_header *)(((void *)new_loose_footer) + 8));
+        validate_block_integrity(new_split);
+        validate_block_integrity(old_block);
+        debug("the value of the next header is: %ld", next_next_header);
+
+        if (((next_next_header >> 2) << 2) == 0)
+        {
+            debug("next block is an epilogue, so just set the that");
+            next_next_header = next_next_header | 0x2;
+        }
+        else
+        {
+            sf_block *next_block = (sf_block *)((void *)new_split + ((new_split->header >> 2) << 2));
+            next_block->header = next_block->header | 0x1;
+            debug("next block is a real block that i need the change the prev-alloc bits for");
+            sf_footer *loose_footer = ((void *)next_block) + (((next_block->header >> 2) << 2));
+            *loose_footer = next_block->header ^ sf_magic();
+        }
+
+        debug("free the split off portion");
+        sf_free(new_split->body.payload);
+
+        return (void *)old_block->body.payload;
+    }
+    else if (rsize > current_size)
+    {
         error("the provided block isn't big enough, can't split_down(). should be split_up()");
-
         return NULL;
-    } else {
+    }
+    else
+    {
         debug("the given block is already the specified size, now set it to allocated");
-
         remove_block_in_list(pp);
         debug("removed the current free block from the list");
 
         // set the header of current block to allocated
         sf_block *current_block = (sf_block *)pp;
         current_block->header = current_block->header | 0x2;
+
         // set the footer of the current block to allocated
         sf_footer *current_footer = (sf_footer *)((void *)current_block + ((current_block->header >> 2) << 2));
         *(current_footer) = current_block->header ^ sf_magic();
@@ -368,18 +412,21 @@ void *split_down(void *pp, size_t rsize) {
         // set the header of the next block to prev-allocated
         sf_block *next_block = (sf_block *)((void *)current_block + ((current_block->header >> 2) << 2));
         next_block->header = next_block->header | 0x1;
-        debug("the header of the next block is: %ld", next_block->header);
-        // TODO: SHOULD ALSO SET FOOTER
+        size_t next_block_size = (next_block->header >> 2) << 2;
+        sf_footer *next_foot = (sf_footer *)((void *)current_block + ((current_block->header >> 2) << 2) + next_block_size);
+        *(next_foot) = next_block->header ^ sf_magic();
 
         return (void *)current_block->body.payload;
     }
 
-    error("split_down() somehow didn't find a case");
-
     return NULL;
 }
 
-void *find_fit(int block_size) {
+/**
+ * Returns an allocated block of the specified block_size
+ */
+void *find_fit(int block_size)
+{
     debug("finding a fit for a block of size %d", block_size);
 
     /** Determine which free-list (index) this size should start at */
@@ -391,61 +438,68 @@ void *find_fit(int block_size) {
 
     void *empty_block;
     void *allocated_ptr;
-    if (sf_mem_start() == sf_mem_end()) {
+    if (sf_mem_start() == sf_mem_end())
+    {
         debug("the current heap does not exist! mem-grow should create prologue and epilogue");
 
         debug("first, initializing all the sentinels");
-        for (int i = 0; i < NUM_FREE_LISTS; i++) {
+        for (int i = 0; i < NUM_FREE_LISTS; i++)
+        {
             sf_free_list_heads[i].body.links.next = &sf_free_list_heads[i];
             sf_free_list_heads[i].body.links.prev = &sf_free_list_heads[i];
         }
 
         void *placement;
-        if ((placement = initialize_first_memgrow(&sf_free_list_heads[min_index])) == NULL) {
+        if ((placement = initialize_first_memgrow(&sf_free_list_heads[min_index])) == NULL)
+        {
             debug("first memgrow failed");
-
             return NULL;
-        } else {
+        }
+        else
+        {
             debug("successfully created first block via memgrow");
-            //return placement;
 
             sf_free_list_heads[min_index].body.links.next = placement;
             sf_free_list_heads[min_index].body.links.prev = placement;
             debug("binded sentinel at %d to first block", min_index);
 
-            // TODO: BREAK OUR BIG FREE BLOCK INTO ONE OF block_size.
-            // probably just implement split_down()
-            if (block_size <= 4048) {
+            if (block_size <= 4048)
+            {
                 debug("need a split of the main block.");
-
                 allocated_ptr = split_down(placement, block_size);
-            } else {
+            }
+            else
+            {
                 debug("need more than just the main block.");
                 empty_block = find_empty_block(min_index, block_size);
-
                 goto heap_exists_just_more_block;
             }
 
             debug("finished its allocated_ptr is %p", allocated_ptr);
-            //debug("the size of it is: %ld", sizeof(allocated_ptr));
             return allocated_ptr;
         }
-    } else {
+    }
+    else
+    {
         debug("the current heap does exist. don't need to re-create prologue.");
 
         empty_block = find_empty_block(min_index, block_size);
-        if (empty_block == NULL) {
+        if (empty_block == NULL)
+        {
             debug("there are no empty blocks to use. do mem_grow on our original min_index: %d", min_index);
 
-            if ((empty_block = sf_mem_grow()) == NULL) {
+            if ((empty_block = sf_mem_grow()) == NULL)
+            {
                 debug("unable to call memgrow to get another block");
-
                 return NULL;
-            } else {
+            }
+            else
+            {
                 debug("memgrow was successful, now coalesce it with the immediately previous empty block if there is one");
 
                 sf_epilogue *epilogue = (sf_epilogue *)(sf_mem_end() - 8 - PAGE_SZ);
-                if (epilogue->header == 3) {
+                if (epilogue->header == 3)
+                {
                     debug("there is no empty block immediately preceding the old epilogue, make the old epilogue the new header of our new block");
 
                     sf_block *new_lone_block = (sf_block *)((void *)epilogue - 8);
@@ -453,40 +507,46 @@ void *find_fit(int block_size) {
                     sf_footer *new_lone_footer = (sf_footer *)((void *)new_lone_block + PAGE_SZ);
                     *new_lone_footer = new_lone_block->header ^ sf_magic();
 
+                    // add the block to a free-list
                     add_block_in_list(new_lone_block, which_free_list_minimum(PAGE_SZ));
 
                     sf_epilogue *new_epilogue = sf_mem_end() - 8;
                     new_epilogue->header = 0x2;
 
-                    if (block_size < PAGE_SZ) {
+                    if (block_size < PAGE_SZ)
+                    {
                         allocated_ptr = split_down(new_lone_block, block_size);
                         return allocated_ptr;
-                    } else if (block_size > PAGE_SZ) {
+                    }
+                    else if (block_size > PAGE_SZ)
+                    {
                         goto allocate_another_page;
-                    } else {
+                    }
+                    else
+                    {
                         return new_lone_block->body.payload;
                     }
-
-                } else if (epilogue->header == 2) {
+                }
+                else if (epilogue->header == 2)
+                {
                 allocate_another_page:
                     debug("there is an empty block immediately preceding the epilogue");
 
                     sf_footer *empty_footer = (sf_footer *)(sf_mem_end() - 16 - PAGE_SZ);
-
                     debug("the empty block size is: %ld", ((*empty_footer ^ sf_magic())) & 0xFFFFFFFC);
-
                     size_t old_empty_size = ((*empty_footer ^ sf_magic())) & 0xFFFFFFFC;
                     sf_block *old_empty = (sf_block *)(sf_mem_end() - 16 - PAGE_SZ - old_empty_size);
 
-                    if ((old_empty->header & 0xFFFFFFFC) != ((*empty_footer ^ sf_magic()) & 0xFFFFFFFC)) {
+                    if ((old_empty->header & 0xFFFFFFFC) != ((*empty_footer ^ sf_magic()) & 0xFFFFFFFC))
+                    {
                         error("footer and header size mismatch");
-
                         return NULL;
                     }
 
                     // in essence, becomes new header, just overwrite its size contents
                     old_empty->header = ((old_empty->header & 0xFFFFFFFC) + PAGE_SZ) | (old_empty->header & 0x1);
 
+                    // set the contents
                     sf_footer *new_footer = sf_mem_end() - 16;
                     *(new_footer) = old_empty->header ^ sf_magic();
                     sf_epilogue *new_epilogue = sf_mem_end() - 8;
@@ -503,20 +563,21 @@ void *find_fit(int block_size) {
                     int new_index = which_free_list_minimum(big_size);
                     add_block_in_list(old_empty, new_index);
 
-                    if (big_size >= block_size) {
+                    if (big_size >= block_size)
+                    {
                         allocated_ptr = split_down(old_empty, block_size);
-
                         return allocated_ptr;
-                    } else {
+                    }
+                    else
+                    {
                     /**
                      * The heap already exists, so we already have a prologue and epilogue,
                      * but instead of our first new block being split, we need to add more to it.
                      */
                     heap_exists_just_more_block:
                         debug("our block still needs more space than what we have. will try memgrow");
-                        // i'm on a tight deadline. at least i know this thing exists
-                        // totally not a good reason.
-                        if (sf_mem_grow() == NULL) {
+                        if (sf_mem_grow() == NULL)
+                        {
                             debug("Unable to allocate another page");
 
                             allocated_ptr = split_down(old_empty, block_size);
@@ -527,24 +588,29 @@ void *find_fit(int block_size) {
 
                         goto allocate_another_page;
                     }
-                } else {
+                }
+                else
+                {
                     debug("the epilogue appears to be malformed.");
-
                     return NULL;
                 }
             }
-        } else {
+        }
+        else
+        {
             debug("will use the empty block at %p", (sf_block *)empty_block);
 
             size_t empty_block_size = (((sf_block *)empty_block)->header >> 2) << 2;
-            if (empty_block_size >= block_size) {
+            if (empty_block_size >= block_size)
+            {
                 allocated_ptr = split_down(empty_block, block_size);
-            } else {
+            }
+            else
+            {
                 goto heap_exists_just_more_block;
             }
 
             debug("finished its allocated_ptr is %p", allocated_ptr);
-
             return allocated_ptr;
         }
     }
@@ -552,10 +618,15 @@ void *find_fit(int block_size) {
     return NULL;
 }
 
-size_t blocks_minimum_size(size_t size, int min) {
+/**
+ * Determine a minimum size for a alloc call with given size
+ */
+size_t blocks_minimum_size(size_t size, int min)
+{
     size = size + 16;
     int amt = 16 - (size % 16);
-    if (amt == 16) {
+    if (amt == 16)
+    {
         amt = 0;
     }
     amt = size + amt;
@@ -563,8 +634,13 @@ size_t blocks_minimum_size(size_t size, int min) {
     return amt;
 }
 
-void *sf_malloc(size_t size) {
-    if (size == 0) {
+/**
+ * The malloc function
+ */
+void *sf_malloc(size_t size)
+{
+    if (size == 0)
+    {
         return NULL;
     }
 
@@ -572,7 +648,8 @@ void *sf_malloc(size_t size) {
     debug("the block is size: %ld", block_size);
 
     void *ptr;
-    if ((ptr = find_fit(block_size)) == NULL) {
+    if ((ptr = find_fit(block_size)) == NULL)
+    {
         error("unable to find_fit for block_size of %ld", block_size);
         sf_errno = ENOMEM;
         return NULL;
@@ -581,8 +658,13 @@ void *sf_malloc(size_t size) {
     return ptr;
 }
 
-void sf_free(void *pp) {
-    if (pp == NULL) {
+/**
+ * The free function
+ */
+void sf_free(void *pp)
+{
+    if (pp == NULL)
+    {
         debug("tried to pass in null pointer");
         abort();
     }
@@ -590,7 +672,8 @@ void sf_free(void *pp) {
     pp = pp - 8 - 8;
     sf_block *block = (sf_block *)pp;
 
-    if ((block->header & 0x2) == 0) {
+    if ((block->header & 0x2) == 0)
+    {
         debug("tried to free a non-allocated block at %p", block);
         abort();
     }
@@ -598,7 +681,8 @@ void sf_free(void *pp) {
     size_t size_of_block = (block->header >> 2) << 2;
     debug("the size of the block im trying to free is: %ld", size_of_block);
 
-    if ((sf_mem_start() + 40) > (void *)(&(block->header))) {
+    if ((sf_mem_start() + 40) > (void *)(&(block->header)))
+    {
         debug("tried to free block not starting in heap");
         debug("start: %p", (sf_mem_start() + 40));
         debug("pointing: %p", (void *)(&(block->header)));
@@ -606,26 +690,31 @@ void sf_free(void *pp) {
     }
 
     void *footer_addr = ((void *)&block->header) + ((block->header >> 2) << 2);
-    if (footer_addr > (sf_mem_end() - 8)) {
+    if (footer_addr > (sf_mem_end() - 8))
+    {
         debug("tried to free block not ending in heap %p is footer;; %p is end of heap", footer_addr, sf_mem_end() - 8);
         abort();
     }
 
-    if (((block->header >> 2) << 2) < 32) {
+    if (((block->header >> 2) << 2) < 32)
+    {
         debug("tried to free a block that has a size smaller than permitted minimum");
         abort();
     }
 
-    if ((block->header & 0x1) == 0) {
+    if ((block->header & 0x1) == 0)
+    {
         debug("the previous block, according the prev-header bit, is NOT allocated");
 
-        if (*((sf_header *)((void *)(&block->header) - 0 - (((*( (sf_footer *)((void *)(&block->header) - 8)) ^ sf_magic()) >> 2) << 2) )) & 0x2) {
+        if (*((sf_header *)((void *)(&block->header) - 0 - (((*((sf_footer *)((void *)(&block->header) - 8)) ^ sf_magic()) >> 2) << 2))) & 0x2)
+        {
             debug("the previous header block says it IS allocated");
             abort();
         }
     }
 
-    if ( (*((sf_footer *)(( ((void *)(&block->header)) + ((block->header >> 2) << 2) ) - 8)) ^ sf_magic()) != block->header ) {
+    if ((*((sf_footer *)((((void *)(&block->header)) + ((block->header >> 2) << 2)) - 8)) ^ sf_magic()) != block->header)
+    {
         debug("footer and header do not match");
         abort();
     }
@@ -649,10 +738,13 @@ void sf_free(void *pp) {
 
     // get the value of the header
     size_t header_value = (next_block->header >> 2) << 2;
-    if (header_value == 0) {
+    if (header_value == 0)
+    {
         debug("next block is the epilogue, set its prv-alloc value to 0");
         next_block->header = 2;
-    } else {
+    }
+    else
+    {
         debug("next block is normal block, set its prv-alloc head and foot to 0");
         next_block->header = (next_block->header >> 1) << 1;
         sf_footer *next_footer = (sf_footer *)((void *)next_block + ((next_block->header >> 2) << 2));
@@ -661,12 +753,14 @@ void sf_free(void *pp) {
 
     add_block_in_list(block, which_free_list_minimum(current_block_size));
 
-    if ((block->header & 0x1) == 0) {
+    if ((block->header & 0x1) == 0)
+    {
         debug("previous block is not allocated, should coalesce with it");
         block = coalesce_blocks(prev_block, block);
     }
 
-    if ((*((sf_header *)(( ((void *)(&block->header)) + ((block->header >> 2) << 2) ) - 0)) & 0x2) == 0) {
+    if ((*((sf_header *)((((void *)(&block->header)) + ((block->header >> 2) << 2)) - 0)) & 0x2) == 0)
+    {
         debug("next block is not allocated, should coalesce with it");
         block = coalesce_blocks(block, next_block);
     }
@@ -676,12 +770,20 @@ void sf_free(void *pp) {
     return;
 }
 
-void *sf_realloc(void *pp, size_t rsize) {
-    if (rsize % 16 != 0) {
+/**
+ * The realloc function.
+ * Can grow/shrink a given block.
+ * Given block must be already allocated (not free!)
+ */
+void *sf_realloc(void *pp, size_t rsize)
+{
+    if (rsize % 16 != 0)
+    {
         rsize = rsize + (16 - (rsize % 16));
     }
 
-    if (pp == NULL) {
+    if (pp == NULL)
+    {
         debug("tried to pass in null pointer");
         abort();
     }
@@ -689,7 +791,8 @@ void *sf_realloc(void *pp, size_t rsize) {
     pp = pp - 8 - 8;
     sf_block *block = (sf_block *)pp;
 
-    if ((block->header & 0x2) == 0) {
+    if ((block->header & 0x2) == 0)
+    {
         debug("tried to realloc a non-allocated block at %p", block);
         abort();
     }
@@ -697,7 +800,8 @@ void *sf_realloc(void *pp, size_t rsize) {
     size_t size_of_block = (block->header >> 2) << 2;
     debug("the size of the block im trying to realloc is: %ld", size_of_block);
 
-    if ((sf_mem_start() + 40) > (void *)(&(block->header))) {
+    if ((sf_mem_start() + 40) > (void *)(&(block->header)))
+    {
         debug("tried to realloc block not starting in heap");
         debug("start: %p", (sf_mem_start() + 40));
         debug("pointing: %p", (void *)(&(block->header)));
@@ -705,26 +809,31 @@ void *sf_realloc(void *pp, size_t rsize) {
     }
 
     void *footer_addr = ((void *)&block->header) + ((block->header >> 2) << 2);
-    if (footer_addr > (sf_mem_end() - 8)) {
+    if (footer_addr > (sf_mem_end() - 8))
+    {
         debug("tried to realloc block not ending in heap %p is footer;; %p is end of heap", footer_addr, sf_mem_end() - 8);
         abort();
     }
 
-    if (((block->header >> 2) << 2) < 32) {
+    if (((block->header >> 2) << 2) < 32)
+    {
         debug("tried to realloc a block that has a size smaller than permitted minimum");
         abort();
     }
 
-    if ((block->header & 0x1) == 0) {
+    if ((block->header & 0x1) == 0)
+    {
         debug("the previous block, according the prev-header bit, is NOT allocated");
 
-        if (*((sf_header *)((void *)(&block->header) - 0 - (((*( (sf_footer *)((void *)(&block->header) - 8)) ^ sf_magic()) >> 2) << 2) )) & 0x2) {
+        if (*((sf_header *)((void *)(&block->header) - 0 - (((*((sf_footer *)((void *)(&block->header) - 8)) ^ sf_magic()) >> 2) << 2))) & 0x2)
+        {
             debug("the previous header block says it IS allocated");
             abort();
         }
     }
 
-    if ( (*((sf_footer *)(( ((void *)(&block->header)) + ((block->header >> 2) << 2) ) - 8)) ^ sf_magic()) != block->header ) {
+    if ((*((sf_footer *)((((void *)(&block->header)) + ((block->header >> 2) << 2)) - 8)) ^ sf_magic()) != block->header)
+    {
         debug("footer and header do not match");
         abort();
     }
@@ -732,11 +841,13 @@ void *sf_realloc(void *pp, size_t rsize) {
     debug("new calculated realloc size is: %ld", rsize);
     size_t current_size = (block->header >> 2) << 2;
 
-    if (current_size < rsize) {
+    if (current_size < rsize)
+    {
         debug("realloc to a larger block");
 
         void *new_block = sf_malloc(rsize);
-        if (new_block == NULL) {
+        if (new_block == NULL)
+        {
             error("unable to malloc a larger block");
             return NULL;
         }
@@ -744,26 +855,36 @@ void *sf_realloc(void *pp, size_t rsize) {
         memcpy(new_block, block->body.payload, current_size);
 
         debug("free the extra split block");
-        if (current_size == 0) {
+        if (current_size == 0)
+        {
             debug("nothing to free, current block is size 0");
-        } else {
+        }
+        else
+        {
             sf_free(block->body.payload);
         }
 
         return new_block;
-    } else if (current_size > rsize) {
+    }
+    else if (current_size > rsize)
+    {
         rsize = rsize + 16;
         debug("realloc to a smaller block %ld", rsize);
 
-        if (current_size - rsize < 32) {
+        if (current_size - rsize < 32)
+        {
             debug("it would result in a splinter, thus do not split");
             return block->body.payload;
-        } else {
+        }
+        else
+        {
             debug("attempt to split down the block");
             void *new_split_block = split_down(pp, rsize);
             return new_split_block; // already is to body payload
         }
-    } else {
+    }
+    else
+    {
         debug("block is already of the specified size");
         return block->body.payload;
     }

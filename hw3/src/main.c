@@ -23,9 +23,22 @@ int main(int argc, char const *argv[]) {
 
     // x=x;y=y;z=z;
 
-sf_malloc(1);
-void *x = sf_malloc(PAGE_SZ << 2);
-x=x;
+void *x = sf_malloc(sizeof(double) * 8);
+
+sf_show_heap();
+
+int *y = sf_realloc(x, sizeof(int));
+
+*y = 321;
+printf("y has %d\n", *y);
+
+sf_show_heap();
+y=y;
+// sf_malloc(1);
+// void *x = sf_malloc(PAGE_SZ << 2);
+// x=x;
+
+//     sf_show_heap();
 
     // double *ptr2 = sf_malloc(sizeof(double));
 

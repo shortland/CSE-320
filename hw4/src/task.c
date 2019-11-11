@@ -199,27 +199,33 @@ static char *parse_path(char **linep) {
 }
 
 static void parse_redirection(PIPELINE *pp, char **linep) {
-    char *path;
     pp->input_path = NULL;
     pp->output_path = NULL;
-    skip_spaces(linep);
-    char c = **linep;
-    if(c == '<' || c == '>') {
+    while(1) {
+	skip_spaces(linep);
+	char c = **linep;
+	if(c != '<' && c != '>')
+	    break;
 	(*linep)++;
-	path = parse_path(linep);
-	if(path == NULL)
-	    return;
-    }
-    if(c == '<') {
-	if(pp->input_path != NULL)
-	    debug("Ambiguous input redirection");
-	else
-	    pp->input_path = path;
-    } else if(c == '>') {
-	if(pp->output_path != NULL)
-	    debug("Ambiguous output redirection");
-	else
-	    pp->output_path = path;
+	if(c == '<') {
+	    if(pp->input_path != NULL) {
+		debug("Ambiguous input redirection");
+		return;
+	    } else {
+		pp->input_path = parse_path(linep);
+		if(pp->input_path == NULL)
+		    return;
+	    }
+	} else if(c == '>') {
+	    if(pp->output_path != NULL) {
+		debug("Ambiguous output redirection");
+		return;
+	    } else {
+		pp->output_path = parse_path(linep);
+		if(pp->output_path == NULL)
+		    return;
+	    }
+	}
     }
 }
 

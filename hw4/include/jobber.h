@@ -216,7 +216,7 @@ int job_expunge(int jobid);
  *
  * @param jobid  An integer in the range [0, MAX_JOBS).
  * @return 0  If the job exists, was in the WAITING, RUNNING, or PAUSED state,
- * and, if the job was in the WAITING or PAUSED state, then the SIGKILL signal was
+ * and, if the job was in the RUNNING or PAUSED state, then the SIGKILL signal was
  * successfully sent.  Otherwise, -1 is returned.
  */
 int job_cancel(int jobid);

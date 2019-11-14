@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
@@ -7,6 +8,11 @@
 #include "jobber.h"
 #include "debug.h"
 #include "commands.h"
+#include "shortcuts.h"
+#include "manipulator.h"
+
+// my first ever macro :o
+#define BAD_ARGS(HAS, COMMAND) printf("Wrong number of args (given: " #HAS ", required: 1) for command '" #COMMAND "'\n");
 
 /**
  * "Jobber" job spooler.
@@ -31,8 +37,26 @@ int main(int argc, char *argv[])
     meta.command = "";
 
     int exits_with = EXIT_SUCCESS;
+    int d = 1;
+
     while ( 1 ) {
+
+        // hacky block that's only reachable via goto, so we can reprompt and free.
+        // don't need to do this, but I rather than re-write the 3 free-s over and over.
+        if ( d == 0 ) {
+            debug("only reachable when error and want to free");
+            freereprompt:
+            free(input_line);
+            free(meta.command);
+            free(meta.whole_args);
+        }
+
+        reprompt:
         input_line = sf_readline("jobber> ");
+        if ( strlen(input_line) == 0 ) {
+            free(input_line);
+            goto reprompt;
+        }
 
         // parse the command out
         meta = commands_parse(input_line);
@@ -72,22 +96,68 @@ int main(int argc, char *argv[])
                         printf("Wrong number of args (given: 0, required: 1) for command 'spool'\n");
                     } else {
                         int job_id;
+
                         if ( (job_id = job_create(meta.whole_args)) == -1 ) {
                             error("failed to create job");
 
-                            // TODO: am i supposed to quit the program or something if job_create fails? or try again?
-                            free(input_line);
-                            free(meta.command);
-                            free(meta.whole_args);
+                            // // TODO: am i supposed to quit the program or something if job_create fails? or try again?
+                            // free(input_line);
+                            // free(meta.command);
+                            // free(meta.whole_args);
 
-                            exits_with = EXIT_FAILURE;
-                            break;
-                        } else {
-                            debug("%ld: job %d created", time(NULL), job_id);
-                            debug("%ld: job %d status changed: new -> waiting", time(NULL), job_id);
+                            // exits_with = EXIT_FAILURE;
+                            // break;
+                            goto freereprompt;
                         }
+
+                        printf("%ld: job %d created\n", time(NULL), job_id);
+                        printf("%ld: job %d status changed: new -> waiting\n", time(NULL), job_id);
                     }
                 }
+            } else if ( strcmp(meta.command, "status") == 0 ) {
+                if (meta.valid_args == -1) {
+                    BAD_ARGS(0, "status");
+
+                    goto freereprompt;
+                }
+
+                if ( strcmp(meta.whole_args, " ") == 0 || strlen(meta.whole_args) == 0 ) {
+                    BAD_ARGS(0, "status");
+
+                    goto freereprompt;
+                }
+
+                int job_id = atoi(meta.whole_args);
+                debug("the job id we are checing is %d", job_id);
+
+                if ( print_job_status(job_id) != 0) {
+                    error("error printing job statuses");
+
+                    goto freereprompt;
+                }
+
+            } else if ( strcmp(meta.command, "jobs") == 0 ) {
+                if ( show_all_job_statuses() != 0) {
+                    error("error printing job statuses");
+
+                    goto freereprompt;
+                }
+            } else if ( strcmp(meta.command, "enable") == 0 ) {
+                // TODO: WIP
+            } else if ( strcmp(meta.command, "TMP") == 0 ) {
+                if (meta.valid_args == -1) {
+                    BAD_ARGS(0, "TMP");
+
+                    goto freereprompt;
+                }
+
+                if ( strcmp(meta.whole_args, " ") == 0 || strlen(meta.whole_args) == 0 ) {
+                    BAD_ARGS(0, "TMP");
+
+                    goto freereprompt;
+                }
+
+                // now do stuff
             } else {
                 error("TODO: I'm missing a valid command: '%s'?", meta.command);
             }

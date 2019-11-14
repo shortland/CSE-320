@@ -63,6 +63,7 @@ int job_create(char *command) {
     }
 
     char *dupped[1];
+    char *dupped_ts = strdup(command);
     dupped[0] = strdup(command);
 
     TASK *task = parse_task(dupped);
@@ -76,6 +77,7 @@ int job_create(char *command) {
     job->task = task;
     job->status = NEW;
     // job->exit_status
+    job->task_spec = dupped_ts;
     job->dupp_free = dupped[0];
 
     JOBS_TABLE *table = spooler_get_jobs_table();
@@ -136,8 +138,13 @@ int job_get_pgid(int jobid) {
  * fail if the job specified jobid is not in the job table.
  */
 JOB_STATUS job_get_status(int jobid) {
-    
-    abort();
+    debug("attempting to get specific jobs table by it");
+    JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
+    if (table == NULL) {
+        return -1;
+    }
+
+    return table->first->status;
 }
 
 /**
@@ -157,9 +164,14 @@ int job_was_canceled(int jobid) {
 }
 
 /**
- *
+ * fail if the specified jobid is not in the job table.
+ * the original string the user typed out after spool ...
  */
 char *job_get_taskspec(int jobid) {
-    // TO BE IMPLEMENTED
-    abort();
+    JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
+    if (table == NULL) {
+        return NULL;
+    }
+
+    return table->first->task_spec;
 }

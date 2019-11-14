@@ -7,6 +7,7 @@ typedef struct JOB {
     TASK *task; // need to free
     JOB_STATUS status;
     int exit_status;
+    char *task_spec; // need to free
     char *dupp_free; // need to free -holds the address we need to free in addition to the task
 } JOB;
 
@@ -50,6 +51,16 @@ JOBS_TABLE *spooler_get_jobs_table(void);
  * @returns creates a new empty jobs table, linked to @param table or its first empty rest;
  */
 JOBS_TABLE *spooler_get_empty_jobs_table(JOBS_TABLE *table);
+
+/**
+ * @returns the JOB_TABLE that contains the specified job with job_id, returns NULL if not exists.
+ */
+JOBS_TABLE *spooler_get_specific_jobs_table(uint32_t job_id);
+
+/**
+ * @returns next table, null if none or if current table is null
+ */
+JOBS_TABLE *spooler_next_table(JOBS_TABLE *table);
 
 /**
  *

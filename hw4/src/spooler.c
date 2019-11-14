@@ -39,6 +39,8 @@ JOBS_TABLE *spooler_get_jobs_table(void) {
     return jobs_table;
 }
 
+// given an existing, filled job table.
+// should basically always be given main jobs table.
 JOBS_TABLE *spooler_get_empty_jobs_table(JOBS_TABLE *table) {
     if (table->rest == NULL) {
         JOBS_TABLE *new_table = malloc(sizeof(JOBS_TABLE));
@@ -50,4 +52,39 @@ JOBS_TABLE *spooler_get_empty_jobs_table(JOBS_TABLE *table) {
     } else {
         return spooler_get_empty_jobs_table(table->rest);
     }
+}
+
+JOBS_TABLE *spooler_get_specific_jobs_table(uint32_t job_id) {
+    debug("attempting to get specific jobs table by it");
+    JOBS_TABLE *table = spooler_get_jobs_table();
+
+    while (1) {
+        if (table->first == NULL) {
+            error("there are no jobs");
+
+            return NULL;
+        }
+
+        if (table->first->job_id == job_id) {
+            debug("found job table with job_id %d", job_id);
+            return table;
+        } else {
+            if (table->rest == NULL) {
+                break;
+            }
+
+            table = table->rest;
+        }
+    }
+
+    error("unable to find job table with job with job_id %d", job_id);
+    return NULL;
+}
+
+JOBS_TABLE *spooler_next_table(JOBS_TABLE *table) {
+    if (table == NULL) {
+        return NULL;
+    }
+
+    return table->rest;
 }

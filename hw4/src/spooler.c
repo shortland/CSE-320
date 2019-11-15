@@ -5,6 +5,7 @@
 
 #include "stdint.h"
 #include "spooler.h"
+#include "processes.h"
 
 // need to free
 static JOBS_TABLE *jobs_table;
@@ -16,14 +17,23 @@ JOBS_TABLE *spooler_create_jobs_table(void) {
     jobs_table->first = NULL;
     jobs_table->rest = NULL;
     jobs_table->total = 0;
+    jobs_table->enable_spooling = 0; // spooling is off initially.
+    // jobs_table->process_starter_pid = -1;
     return jobs_table;
 }
 
 void spooler_free_jobs_table(void) {
     free(jobs_table);
+    return;
 }
 
-uint32_t spooler_available_runners(void) {
+void spooler_set_runners(int runners) {
+    debug("setting to %d", runners);
+    AVAILABLE_RUNNERS = runners;
+    return;
+}
+
+uint32_t spooler_get_runners(void) {
     return AVAILABLE_RUNNERS;
 }
 
@@ -37,6 +47,19 @@ void spooler_increment_job_count(void) {
 
 JOBS_TABLE *spooler_get_jobs_table(void) {
     return jobs_table;
+}
+
+int spooler_jobs_enabled(void) {
+    debug("attempting to get jobs table enable-status");
+    JOBS_TABLE *table = spooler_get_jobs_table();
+    return table->enable_spooling;
+}
+
+void spooler_jobs_set_enable(int val) {
+    debug("attempting to set jobs table enable-status to '%d'", val);
+    JOBS_TABLE *table = spooler_get_jobs_table();
+    table->enable_spooling = val;
+    return;
 }
 
 // given an existing, filled job table.
@@ -87,4 +110,60 @@ JOBS_TABLE *spooler_next_table(JOBS_TABLE *table) {
     }
 
     return table->rest;
+}
+
+JOB *spooler_get_first_by_status(JOB_STATUS status) {
+    debug("attempting to return first job of status [%s]", job_status_names[status]);
+    JOBS_TABLE *table = spooler_get_jobs_table();
+
+    while ( 1 ) {
+        if (table->first == NULL) {
+            error("there are no jobs yet");
+
+            return NULL;
+        }
+
+        if (table->first->status == status) {
+            debug("found job_id (%d) with that status", table->first->job_id);
+
+            return table->first;
+        } else {
+            if (table->rest == NULL) {
+                break;
+            }
+
+            table = table->rest;
+        }
+    }
+
+    debug("unable to find any jobs of [%s] status", job_status_names[status]);
+    return NULL;
+}
+
+JOB *spooler_get_job_by_pid(pid_t pid) {
+    debug("attempting to return job with pid [%d]", pid);
+    JOBS_TABLE *table = spooler_get_jobs_table();
+
+    while ( 1 ) {
+        if (table->first == NULL) {
+            error("there are no jobs yet");
+
+            return NULL;
+        }
+
+        if (table->first->process == pid) {
+            debug("found job_id (%d) with that pid", table->first->job_id);
+
+            return table->first;
+        } else {
+            if (table->rest == NULL) {
+                break;
+            }
+
+            table = table->rest;
+        }
+    }
+
+    debug("unable to find any jobs with pid [%d]", pid);
+    return NULL;
 }

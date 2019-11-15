@@ -4,11 +4,17 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <errno.h>
 #include <string.h>
+#include <unistd.h>
+#include <signal.h>
 
 #include "jobber.h"
 #include "task.h"
 #include "spooler.h"
+#include "processes.h"
+#include "signaler.h"
+#include "sf_readline.h"
 
 /**
  * I guess create the spooler here.
@@ -17,8 +23,30 @@
 int jobs_init(void) {
     // create the jobs table.
     JOBS_TABLE *jobs_table = spooler_create_jobs_table();
-
     debug("the table has %d current jobs", jobs_table->total);
+
+    // set the # of available runners to the # of max runners defined in jobber.h
+    spooler_set_runners(MAX_RUNNERS);
+
+    /**
+     * Create a SigChld handler that starts new jobs if the SIGCHLD signal means a child finished
+     * which results in us having more usable threads (max4) to start more jobs
+     */
+    struct sigaction sc;
+    sc.sa_handler = signaler_handler_job_completed;
+    sc.sa_flags = 0;
+    sigemptyset(&sc.sa_mask);
+
+    if ( sigaction(SIGCHLD, &sc, NULL) == -1 ) {
+        error("Couldn't set SIGCHLD handler");
+        return -1;
+    }
+    // if (signal(SIGCHLD, signaler_handler_job_completed) == SIG_ERR) {
+    //     error("SIGCHLD install job_completed signal error");
+    //     return -1;
+    // }
+
+    sf_set_readline_signal_hook(signaler_determine_signal_action);
 
     return 0;
 }
@@ -36,19 +64,54 @@ void jobs_fini(void) {
 }
 
 /**
- *
+ * Creates a fork process which just checks for new jobs and starts them
  */
 int jobs_set_enabled(int val) {
-    // TO BE IMPLEMENTED
-    abort();
+    if (val != 0) {
+        debug("enable jobs");
+    } else {
+        debug("disable jobs");
+    }
+
+    int enabled_prev = spooler_jobs_enabled();
+    if (enabled_prev != 0 && val != 0) {
+        debug("spooling is already enabled.");
+
+        return enabled_prev;
+    }
+
+    // else {
+    //     debug("spooling appear to be off, so we can start it!");
+    // }
+
+    // debug("attempting to enable job starting");
+    // pid_t pid;
+    // if ( (pid = processes_spool_new_jobs()) == -1) {
+    //     error("unable to start process of spooling new jobs");
+
+    //     return enabled_prev;
+
+    //     // we are only supposed to return the original enable status.
+    //     // abort();
+    // }
+
+    debug("looks like process of spooling new jobs is running!");
+    // set the enabled to whatever val is.
+
+    // set the jobs-enabled flag to whatever was passed in to this function
+    spooler_jobs_set_enable(val);
+
+    // set the process_starter pid so we can later check that it exited
+    // spooler_processes_set_starter(pid);
+
+    return enabled_prev;
 }
 
 /**
- *
+ * Get whether job-spooling is enabled
  */
 int jobs_get_enabled() {
-    // TO BE IMPLEMENTED
-    abort();
+    return spooler_jobs_enabled();
 }
 
 /**
@@ -59,6 +122,7 @@ int job_create(char *command) {
     int num_jobs;
     if ( (num_jobs = spooler_total_jobs()) == MAX_JOBS) {
         error("exceeds maximum jobs on job table");
+
         return -1;
     }
 
@@ -90,6 +154,20 @@ int job_create(char *command) {
     }
 
     spooler_increment_job_count();
+    uint32_t cnum_jobs = spooler_total_jobs();
+    debug("the number of jobs is currently: %d", cnum_jobs);
+
+    // if starter spooler is enabled/on then tell it to restart
+    // pid_t starter_pid = spooler_processes_get_starter();
+    // int enabled_starting = spooler_jobs_enabled();
+    // if (starter_pid != -1 && enabled_starting != 0) {
+    //     debug("send signal to spool starter to restart.");
+    //     // send a signal to starter processes to restart gracefully. (finish tasks first!)
+    //     if (kill() != 0) {
+    //         error("unable to send signal to process to restart");
+    //         return -1;
+    //     }
+    // }
 
     return num_jobs; // TODO eventually need to change this. assumes the next job is gonna be free/new one,
 }

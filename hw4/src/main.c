@@ -38,14 +38,17 @@ int main(int argc, char *argv[])
 
     int exits_with = EXIT_SUCCESS;
     int d = 1;
+    int enable_jobs;
 
     while ( 1 ) {
+        enable_jobs = -1;
 
         // hacky block that's only reachable via goto, so we can reprompt and free.
         // don't need to do this, but I rather than re-write the 3 free-s over and over.
         if ( d == 0 ) {
-            debug("only reachable when error and want to free");
             freereprompt:
+            debug("only reachable when error and want to free");
+
             free(input_line);
             free(meta.command);
             free(meta.whole_args);
@@ -100,18 +103,11 @@ int main(int argc, char *argv[])
                         if ( (job_id = job_create(meta.whole_args)) == -1 ) {
                             error("failed to create job");
 
-                            // // TODO: am i supposed to quit the program or something if job_create fails? or try again?
-                            // free(input_line);
-                            // free(meta.command);
-                            // free(meta.whole_args);
-
-                            // exits_with = EXIT_FAILURE;
-                            // break;
                             goto freereprompt;
                         }
 
                         printf("%ld: job %d created\n", time(NULL), job_id);
-                        printf("%ld: job %d status changed: new -> waiting\n", time(NULL), job_id);
+                        // printf("%ld: job %d status changed: new -> waiting\n", time(NULL), job_id);
                     }
                 }
             } else if ( strcmp(meta.command, "status") == 0 ) {
@@ -135,7 +131,6 @@ int main(int argc, char *argv[])
 
                     goto freereprompt;
                 }
-
             } else if ( strcmp(meta.command, "jobs") == 0 ) {
                 if ( show_all_job_statuses() != 0) {
                     error("error printing job statuses");
@@ -143,7 +138,11 @@ int main(int argc, char *argv[])
                     goto freereprompt;
                 }
             } else if ( strcmp(meta.command, "enable") == 0 ) {
-                // TODO: WIP
+                debug("should enable jobs");
+                enable_jobs = 0;
+            } else if ( strcmp(meta.command, "disable") == 0 ) {
+                debug("should disable jobs");
+                enable_jobs = 1;
             } else if ( strcmp(meta.command, "TMP") == 0 ) {
                 if (meta.valid_args == -1) {
                     BAD_ARGS(0, "TMP");
@@ -164,6 +163,47 @@ int main(int argc, char *argv[])
         } else {
             printf("Unrecognized command: %s\n", meta.command);
         }
+
+        /**
+         * Change jobs that were newly created to "waiting" status
+         */
+        change_new_to_waiting();
+
+        /**
+         * At end of while, enable jobs if 0, disable if 1, leave alone otherwise (-1)
+         */
+        if ( enable_jobs == 0 ) {
+            debug("enabling jobs");
+            int enable_was;
+            if ( (enable_was = jobs_set_enabled(1)) == 0) {
+                debug("starting jobs was off. now should be on.");
+            } else {
+                debug("starting jobs was already on.");
+            }
+        } else if ( enable_jobs == 1 ) {
+            debug("stopping jobs");
+            int enable_was;
+            if ( (enable_was = jobs_set_enabled(0)) == 0) {
+                debug("starting jobs was already off. should still be off.");
+            } else {
+                debug("starting jobs was on. should now be off.");
+            }
+        } else {
+            // enable_jobs is default value of -1; don't do anything.
+        }
+
+        // /**
+        //  * At the end of any user input,
+        //  * Start any jobs if starter says we can
+        // NOTE: moving this into signaler, into the main callback function...
+        //  */
+        // if ( jobs_get_enabled() != 0 ) {
+        //     debug("processes_spool_new_job");
+
+        //     // change_waiting_to_
+        //     // this function should fork for EACH job it starts.
+        //     // processes_spool_new_job();
+        // }
 
         /**
          * At end of while

@@ -17,7 +17,7 @@
 /*
  * Maximum number of runner processes that are allowed to exist at one time.
  */
-#define MAX_RUNNERS 1
+#define MAX_RUNNERS 4
 
 /*
  * The following are the states that a job can be in.

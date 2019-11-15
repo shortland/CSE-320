@@ -48,6 +48,8 @@ pid_t processes_spool_new_job(int job_id) {
             return -1;
         }
 
+        sf_job_start(job->job_id, getpid());
+
         /**
          * Install the sigint-handler for the child
          */
@@ -69,13 +71,36 @@ pid_t processes_spool_new_job(int job_id) {
         PIPELINE_LIST *pipelines = job->task->pipelines;
         while (pipelines != NULL) {
             PIPELINE *pipeline = pipelines->first;
-            pipeline = pipeline;
 
             warn("got a pipeline!");
+            pid_t pid_pipeline_master;
+            if ( (pid_pipeline_master = fork()) == 0) {
+                // Master Pipeline Process, there should be as many of these for a TASK as there are pipelines.
+                // pipeline ; pipeline ; pipeline
+                debug("hello from pipline master process.");
+
+                // create child foreach command in the pipeline.
+                COMMAND_LIST *commands = pipeline->commands;
+                char *input_path = pipeline->input_path;
+                input_path = input_path; // TODO:
+                char *output_path = pipeline->output_path;
+                output_path = output_path; //TODO:
+                while (commands != NULL) {
+                    COMMAND *command = commands->first;
+
+                    command = command;
+                    warn("we have a command!");
+
+                    commands = commands->rest;
+                }
+
+                exit(0);
+            }
 
             // at end
             pipelines = pipelines->rest;
         }
+
         // the stuff this child is supposed to do is:
         debug("The stuff I'm supposed to do: %s", table->first->task_spec);
 

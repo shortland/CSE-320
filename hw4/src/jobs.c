@@ -23,6 +23,7 @@
 int jobs_init(void) {
     // create the jobs table.
     JOBS_TABLE *jobs_table = spooler_create_jobs_table();
+    jobs_table = jobs_table; // TODO:
     debug("the table has %d current jobs", jobs_table->total);
 
     // set the # of available runners to the # of max runners defined in jobber.h
@@ -153,8 +154,12 @@ int job_create(char *command) {
         debug("set the job in next/new table.");
     }
 
+    // TODO:
+    sf_job_create(job->job_id);
+
     spooler_increment_job_count();
     uint32_t cnum_jobs = spooler_total_jobs();
+    cnum_jobs = cnum_jobs; // TODO
     debug("the number of jobs is currently: %d", cnum_jobs);
 
     // if starter spooler is enabled/on then tell it to restart
@@ -205,10 +210,20 @@ int job_resume(int jobid) {
 }
 
 /**
- *
+ * return the specified jobs pid
  */
 int job_get_pgid(int jobid) {
-    // TO BE IMPLEMENTED
+    // JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
+    // if (table == NULL) {
+    //     return -1;
+    // }
+
+    // int process = table->first->process;
+    // if (process == NULL) {
+    //     return -1;
+    // }
+
+    // return process;
     abort();
 }
 
@@ -226,15 +241,19 @@ JOB_STATUS job_get_status(int jobid) {
 }
 
 /**
- *
+ * return the specified job exit status
  */
 int job_get_result(int jobid) {
-    // TO BE IMPLEMENTED
-    abort();
+    JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
+    if (table == NULL) {
+        return -1;
+    }
+
+    return table->first->exit_status;
 }
 
 /**
- *
+ * 
  */
 int job_was_canceled(int jobid) {
     // TO BE IMPLEMENTED

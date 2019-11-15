@@ -54,6 +54,7 @@ void change_new_to_waiting(void) {
 
     while ( (job = spooler_get_first_by_status(NEW)) != NULL) {
         debug("found a job of %d that is new!", job->job_id);
+        sf_job_status_change(job->job_id, job->status, WAITING);
         job->status = WAITING;
 
         printf("job %d status changed: new -> waiting\n", job->job_id);
@@ -81,6 +82,7 @@ void change_waiting_to_running(void) {
         if ( (pid = processes_spool_new_job(job->job_id)) == -1 ) {
             error("unable to start new job for process?");
         } else {
+            sf_job_status_change(job->job_id, job->status, RUNNING);
             job->process = pid;
             job->status = RUNNING;
             spooler_set_runners(spooler_get_runners() - 1);
@@ -101,13 +103,16 @@ void change_running_to_completed(pid_t pid, int exit_status) {
         return;
     }
 
+    sf_job_status_change(job->job_id, job->status, COMPLETED);
     job->status = COMPLETED;
     job->exit_status = exit_status;
-    job->process = -1;
+    // job->process = -1; // TODO: maybe?
     debug("successfull changed job (%d) to completed.", job->job_id);
 
     // update runners
     spooler_set_runners(spooler_get_runners() + 1);
+
+    sf_job_end(job->job_id, pid, exit_status);
 
     return;
 }

@@ -3,10 +3,13 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <stdint.h>
 
 #include "signaler.h"
 #include "jobber.h"
 #include "manipulator.h"
+#include "task.h"
+#include "spooler.h"
 
 volatile sig_atomic_t job_completed;
 // static int job_completed;
@@ -27,15 +30,22 @@ int signaler_determine_signal_action(void) {
         job_completed = 0;
         debug("a job(s) completed!");
 
-        /**
-         * signals get smooshed if we don't read them fast enough.
-         * so we do this.
-         */
-        while ( 1 ) {
+        // get the process id's from all the 'running' jobs
+        for (int i = 0; i < MAX_JOBS; i++) {
+            // check if jobid 'i' is running
+            JOB *job = spooler_get_job_by_job_id(i);
+            if (job == NULL) {
+                continue;
+            }
+
+            if (job->status != RUNNING || job->process == -1) {
+                continue;
+            }
+
             debug("checking to reap children.");
 
             int status;
-            pid_t wpid = waitpid(-1, &status, WNOHANG);
+            pid_t wpid = waitpid(job->process, &status, WNOHANG);
 
             if (wpid <= 0) {
                 debug("no more pids to wait for.");
@@ -44,7 +54,7 @@ int signaler_determine_signal_action(void) {
             }
 
             if (WIFEXITED(status)) {
-                debug("Child %d terminated with exit status %d\n", wpid, WEXITSTATUS(status));
+                debug("Child %d terminated with exit status %d", wpid, WEXITSTATUS(status));
 
                 if (status == 0) {
                     // change from running to completed.

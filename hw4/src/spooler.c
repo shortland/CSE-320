@@ -167,3 +167,31 @@ JOB *spooler_get_job_by_pid(pid_t pid) {
     debug("unable to find any jobs with pid [%d]", pid);
     return NULL;
 }
+
+JOB *spooler_get_job_by_job_id(uint32_t job_id) {
+    debug("attempting to return job with job_id [%d]", job_id);
+    JOBS_TABLE *table = spooler_get_jobs_table();
+
+    while ( 1 ) {
+        if (table->first == NULL) {
+            error("there are no jobs yet");
+
+            return NULL;
+        }
+
+        if (table->first->job_id == job_id) {
+            debug("found job_id (%d) that matches", table->first->job_id);
+
+            return table->first;
+        } else {
+            if (table->rest == NULL) {
+                break;
+            }
+
+            table = table->rest;
+        }
+    }
+
+    debug("unable to find any jobs with job_id [%d]", job_id);
+    return NULL;
+}

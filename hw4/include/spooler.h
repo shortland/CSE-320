@@ -103,6 +103,11 @@ JOB *spooler_get_first_by_status(JOB_STATUS status);
 JOB *spooler_get_job_by_pid(pid_t pid);
 
 /**
+ * @returns the job with the specified @param job_id
+ */
+JOB *spooler_get_job_by_job_id(uint32_t job_id);
+
+/**
  *
  */
 

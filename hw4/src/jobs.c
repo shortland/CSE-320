@@ -133,6 +133,8 @@ int job_create(char *command) {
 
     TASK *task = parse_task(dupped);
     if (task == NULL) {
+        error("parsing task returned null");
+
         free(dupped[0]);
         return -1;
     }
@@ -173,6 +175,9 @@ int job_create(char *command) {
     //         return -1;
     //     }
     // }
+
+    // TODO:
+    // iterate thru all jobs see which have valid TASKs (not null) then return that.
 
     return num_jobs; // TODO eventually need to change this. assumes the next job is gonna be free/new one,
 }

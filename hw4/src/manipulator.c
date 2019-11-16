@@ -106,6 +106,7 @@ void change_running_to_completed(pid_t pid, int exit_status) {
     sf_job_status_change(job->job_id, job->status, COMPLETED);
     job->status = COMPLETED;
     job->exit_status = exit_status;
+    job->task = NULL; // TODO?
     job->process = -1;
     debug("successfull changed job (%d) to completed.", job->job_id);
 

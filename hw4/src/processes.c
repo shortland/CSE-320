@@ -96,7 +96,7 @@ pid_t processes_spool_new_job(int job_id) {
                 char *input_path = pipeline->input_path;
                 int fd_in = -1;
                 if (input_path != NULL) {
-                    fd_in = open(input_path, 'r');
+                    fd_in = open(input_path, O_RDONLY);
                     if (fd_in == -1) {
                         error("unable to open input file.");
                         // abort?
@@ -112,7 +112,8 @@ pid_t processes_spool_new_job(int job_id) {
                 int last_fd_out = -1;
                 if (output_path != NULL) {
                     debug("found output path, trying to open it.");
-                    last_fd_out = open(output_path, 'w');
+                    last_fd_out = open(output_path, O_WRONLY | O_TRUNC | O_CREAT, 00777);
+                    // error("the fdout is currently: %d", last_fd_out);
                     if (last_fd_out == -1) {
                         error("unable to open last output file.");
                         // abort?
@@ -124,6 +125,7 @@ pid_t processes_spool_new_job(int job_id) {
                  * The pipe FDs, for intermediary commands
                  */
                 int pipe_fds[2];
+                int read_pipe_prev = -1;
 
                 int command_num = 0;
                 int child_status;
@@ -161,11 +163,13 @@ pid_t processes_spool_new_job(int job_id) {
                             // get it's input from the pipe
                             debug("this is not the first command, so replace its input from pipe in");
 
-                            if (dup2(pipe_fds[0], 0) == -1) {
-                                error("unable to change non-first command input to pipe in");
-                                exit(-1);
+                            if (read_pipe_prev != -1) {
+                                if (dup2(read_pipe_prev, 0) == -1) {
+                                    error("unable to change non-first command input to pipe in");
+                                    exit(-1);
+                                }
                             }
-                            close(pipe_fds[0]);
+                            close(read_pipe_prev);
                         }
 
                         // if is last command
@@ -179,6 +183,7 @@ pid_t processes_spool_new_job(int job_id) {
                                     error("unable to change last command fd to last_fd_out");
                                     exit(-1);
                                 }
+                                // error("changed fdout to %d", last_fd_out);
                                 close(last_fd_out);
                             }
                         } else {
@@ -220,7 +225,6 @@ pid_t processes_spool_new_job(int job_id) {
 
                         errno = 0;
                         debug("command:%s", command->words->first);
-                        sleep(30);
                         if (execvp(command->words->first, command_args) == -1) {
                             error("execvp failed to execute %d", errno);
                             exit(-1);
@@ -239,7 +243,7 @@ pid_t processes_spool_new_job(int job_id) {
                         // ...
                         // parent here, has the output of the piped command from child.
                         // parent should make that data it reads, the input to the next command.
-                        // pipe_fds[1] = pipe_fds[0] ?
+                        read_pipe_prev = pipe_fds[0];
                         // ...
                         // close the writing pipe in the parent always
                         close(pipe_fds[1]);

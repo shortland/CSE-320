@@ -23,7 +23,7 @@ void signaler_handler_job_completed(int signal) {
 
 int signaler_determine_signal_action(void) {
     debug("determine action (& do) from flags...");
-    warn("job completed is: %d", job_completed);
+    // warn("job completed is: %d", job_completed);
 
     job_comp:
     if ( job_completed != 0 ) {

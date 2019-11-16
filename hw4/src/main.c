@@ -56,6 +56,10 @@ int main(int argc, char *argv[])
 
         reprompt:
         input_line = sf_readline("jobber> ");
+        if ( input_line == NULL ) {
+            return EXIT_SUCCESS;
+        }
+
         if ( strlen(input_line) == 0 ) {
             free(input_line);
             goto reprompt;
@@ -106,7 +110,7 @@ int main(int argc, char *argv[])
                             goto freereprompt;
                         }
 
-                        printf("%ld: job %d created\n", time(NULL), job_id);
+                        // printf("%ld: job %d created\n", time(NULL), job_id);
                         // printf("%ld: job %d status changed: new -> waiting\n", time(NULL), job_id);
                     }
                 }

@@ -83,7 +83,7 @@ JOBS_TABLE *spooler_get_specific_jobs_table(uint32_t job_id) {
 
     while (1) {
         if (table->first == NULL) {
-            error("there are no jobs");
+            debug("there are no jobs");
 
             return NULL;
         }
@@ -118,7 +118,7 @@ JOB *spooler_get_first_by_status(JOB_STATUS status) {
 
     while ( 1 ) {
         if (table->first == NULL) {
-            error("there are no jobs yet");
+            debug("there are no jobs yet");
 
             return NULL;
         }
@@ -146,7 +146,7 @@ JOB *spooler_get_job_by_pid(pid_t pid) {
 
     while ( 1 ) {
         if (table->first == NULL) {
-            error("there are no jobs yet");
+            debug("there are no jobs yet");
 
             return NULL;
         }
@@ -174,7 +174,7 @@ JOB *spooler_get_job_by_job_id(uint32_t job_id) {
 
     while ( 1 ) {
         if (table->first == NULL) {
-            error("there are no jobs yet");
+            debug("there are no jobs yet");
 
             return NULL;
         }

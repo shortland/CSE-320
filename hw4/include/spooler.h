@@ -51,6 +51,11 @@ uint32_t spooler_total_jobs(void);
 void spooler_increment_job_count(void);
 
 /**
+ * Decrement the total job count.
+ */
+void spooler_decrement_job_count(void);
+
+/**
  * @returns the main jobs table.
  */
 JOBS_TABLE *spooler_get_jobs_table(void);
@@ -106,6 +111,11 @@ JOB *spooler_get_job_by_pid(pid_t pid);
  * @returns the job with the specified @param job_id
  */
 JOB *spooler_get_job_by_job_id(uint32_t job_id);
+
+/**
+ *
+ */
+JOB *spooler_get_empty_job(JOBS_TABLE *table);
 
 /**
  *

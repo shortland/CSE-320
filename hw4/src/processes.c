@@ -18,10 +18,12 @@
 #include "spooler.h"
 #include "processes.h"
 
-void handler_sigint(int signal) {
-    debug("received sigint, 'cleanly' stopping process: '%d'", getpid());
-    // TODO - way of telling parent we stopped, parent needs to read this exit status?
+volatile sig_atomic_t canceled;
 
+void handler_sigkill(int signal) {
+    error("received SIGKILL, 'cleanly' stopping process: '%d'", getpid());
+    // TODO - way of telling parent we stopped, parent needs to read this exit status?
+    canceled = 1;
     exit(0);
 }
 
@@ -59,11 +61,11 @@ pid_t processes_spool_new_job(int job_id) {
         /**
          * Install the sigint-handler for the child
          */
-        if (signal(SIGINT, handler_sigint) == SIG_ERR) {
-            error("signal-sigint install error");
+        // if (signal(SIGKILL, handler_sigkill) == SIG_ERR) {
+        //     error("signal-sigint install error");
 
-            return -1;
-        }
+        //     return -1;
+        // }
 
         /**
          * task->pipelines->first->commands->first->words->first->rest
@@ -239,7 +241,7 @@ pid_t processes_spool_new_job(int job_id) {
                         // wait for child to finish by waiting for its PID (command_pid)
                         debug("pipeline master, waiting for child to finish");
                         waitpid(command_pid, &child_status, 0);
-                        debug("child (%d) seems to have reaped", command_pid);
+                        debug("child (%d) seems to have reaped %d", command_pid, getpid());
                         // ...
                         // parent here, has the output of the piped command from child.
                         // parent should make that data it reads, the input to the next command.
@@ -271,8 +273,15 @@ pid_t processes_spool_new_job(int job_id) {
 
         // still process master thread (child)
         // wait for child pipeline masters
+
+        if (signal(SIGINT, handler_sigkill) == SIG_ERR) {
+            error("signal (cancel) install error");
+
+            return -1;
+        }
+
         check_pipe_amt:
-        while ( pipe_amt != 0 ) {
+        while ( canceled == 0 && pipe_amt != 0 ) {
             // error("waiting for pipeline children to finish (children of this task - master process %d)", getpid());
             int pipe_line_status;
             pid_t pid = waitpid(0, &pipe_line_status, WNOHANG);

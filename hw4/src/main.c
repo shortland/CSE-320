@@ -147,6 +147,90 @@ int main(int argc, char *argv[])
             } else if ( strcmp(meta.command, "disable") == 0 ) {
                 debug("should disable jobs");
                 enable_jobs = 1;
+            } else if ( strcmp(meta.command, "pause") == 0 ) {
+                debug("should pause job");
+                if (meta.valid_args == -1) {
+                    BAD_ARGS(0, "pause");
+
+                    goto freereprompt;
+                }
+
+                if ( strcmp(meta.whole_args, " ") == 0 || strlen(meta.whole_args) == 0 ) {
+                    BAD_ARGS(0, "pause");
+
+                    goto freereprompt;
+                }
+
+                int job_id = atoi(meta.whole_args);
+                if (job_pause(job_id) == -1) {
+                    printf("Cannot pause a job with that id.\n");
+                    goto freereprompt;
+                } else {
+                    printf("job %d changed to PAUSED\n", job_id);
+                }
+            } else if ( strcmp(meta.command, "resume") == 0 ) {
+                debug("should resume job");
+                if (meta.valid_args == -1) {
+                    BAD_ARGS(0, "resume");
+
+                    goto freereprompt;
+                }
+
+                if ( strcmp(meta.whole_args, " ") == 0 || strlen(meta.whole_args) == 0 ) {
+                    BAD_ARGS(0, "resume");
+
+                    goto freereprompt;
+                }
+
+                int job_id = atoi(meta.whole_args);
+                if (job_resume(job_id) == -1) {
+                    printf("Cannot resume a job with that id.\n");
+                    goto freereprompt;
+                } else {
+                    printf("job %d changed to RUNNING\n", job_id);
+                }
+            } else if ( strcmp(meta.command, "cancel") == 0 ) {
+                debug("should cancel job");
+                if (meta.valid_args == -1) {
+                    BAD_ARGS(0, "cancel");
+
+                    goto freereprompt;
+                }
+
+                if ( strcmp(meta.whole_args, " ") == 0 || strlen(meta.whole_args) == 0 ) {
+                    BAD_ARGS(0, "cancel");
+
+                    goto freereprompt;
+                }
+
+                int job_id = atoi(meta.whole_args);
+                if (job_cancel(job_id) == -1) {
+                    printf("Cannot cancel a job with that id.\n");
+                    goto freereprompt;
+                } else {
+                    printf("job %d changed to CANCELED\n", job_id);
+                }
+            } else if ( strcmp(meta.command, "expunge") == 0 ) {
+                debug("should expunge job");
+                if (meta.valid_args == -1) {
+                    BAD_ARGS(0, "expunge");
+
+                    goto freereprompt;
+                }
+
+                if ( strcmp(meta.whole_args, " ") == 0 || strlen(meta.whole_args) == 0 ) {
+                    BAD_ARGS(0, "expunge");
+
+                    goto freereprompt;
+                }
+
+                int job_id = atoi(meta.whole_args);
+                if (job_expunge(job_id) == -1) {
+                    printf("Cannot expunge a job with that id %d.\n", job_id);
+                    goto freereprompt;
+                } else {
+                    printf("job %d was expunged.\n", job_id);
+                }
             } else if ( strcmp(meta.command, "TMP") == 0 ) {
                 if (meta.valid_args == -1) {
                     BAD_ARGS(0, "TMP");
@@ -180,17 +264,17 @@ int main(int argc, char *argv[])
             debug("enabling jobs");
             int enable_was;
             if ( (enable_was = jobs_set_enabled(1)) == 0) {
-                debug("starting jobs was off. now should be on.");
+                printf("starting jobs was off. now should be on.\n");
             } else {
-                debug("starting jobs was already on.");
+                printf("starting jobs was already on.\n");
             }
         } else if ( enable_jobs == 1 ) {
             debug("stopping jobs");
             int enable_was;
             if ( (enable_was = jobs_set_enabled(0)) == 0) {
-                debug("starting jobs was already off. should still be off.");
+                printf("starting jobs was already off. should still be off.\n");
             } else {
-                debug("starting jobs was on. should now be off.");
+                printf("starting jobs was on. should now be off.\n");
             }
         } else {
             // enable_jobs is default value of -1; don't do anything.

@@ -120,6 +120,7 @@ int jobs_get_enabled() {
  * TODO: incomplete, works when only adding jobs. remove breaks it.
  */
 int job_create(char *command) {
+    debug("trying to create job");
     int num_jobs;
     if ( (num_jobs = spooler_total_jobs()) == MAX_JOBS) {
         error("exceeds maximum jobs on job table");
@@ -137,6 +138,26 @@ int job_create(char *command) {
 
         free(dupped[0]);
         return -1;
+    }
+
+    // check to see if there are any expunged jobs first.
+    // (null task)
+    JOBS_TABLE *init_table = spooler_get_jobs_table();
+    if (init_table != NULL) {
+        JOB *empty = spooler_get_empty_job(init_table);
+        if (empty != NULL) {
+            warn("will re-use a job of id %d", empty->job_id);
+
+            empty->task = task;
+            empty->status = NEW;
+            empty->task_spec = dupped_ts;
+            empty->dupp_free = dupped[0];
+            empty->exit_status = 0;
+            sf_job_create(empty->job_id);
+            spooler_increment_job_count();
+
+            return empty->job_id;
+        }
     }
 
     JOB *job = malloc(sizeof(JOB));
@@ -186,50 +207,140 @@ int job_create(char *command) {
  *
  */
 int job_expunge(int jobid) {
-    // TO BE IMPLEMENTED
-    abort();
+    JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
+    if (table == NULL) {
+        error("unable to expunge job with that jobid (not found)");
+        return -1;
+    }
+
+    if (table->first->task == NULL) {
+        return -1;
+    }
+
+    if (table->first->status != COMPLETED && table->first->status != ABORTED) {
+        error("must wait until job terminates");
+        return -1;
+    }
+
+    spooler_decrement_job_count();
+    sf_job_expunge(jobid);
+    table->first->task = NULL;
+    return 0;
 }
 
 /**
- *
+ * cancel a job that is running SIGKILL / or if it's waiting/new then cancel it
  */
 int job_cancel(int jobid) {
-    // TO BE IMPLEMENTED
-    abort();
+    JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
+    if (table == NULL) {
+        return -1;
+    }
+
+    if (table->first->task == NULL) {
+        return -1;
+    }
+
+    if (table->first->status == RUNNING) {
+        if (kill(-table->first->process, SIGKILL) != 0) {
+            printf("error: unable to cancel job\n");
+            return -1;
+        }
+        if (kill(table->first->process, SIGKILL) != 0) {
+            printf("error: unable to cancel(k) job\n");
+            return -1;
+        }
+        error("trying to int %d",table->first->process);
+        if (kill(table->first->process, SIGINT) != 0) {
+            printf("error: unable to kill main processes thread\n");
+            return -1;
+        }
+        sf_job_status_change(jobid, table->first->status, CANCELED);
+        table->first->status = CANCELED;
+        return 0;
+    } else if (table->first->status == WAITING || table->first->status == NEW) {
+        sf_job_status_change(jobid, table->first->status, ABORTED);
+        table->first->status = ABORTED;
+        return 0;
+    } else {
+        return -1;
+    }
+
+    return -1;
 }
 
 /**
- *
+ * pause a job that is running
  */
 int job_pause(int jobid) {
-    // TO BE IMPLEMENTED
-    abort();
+    JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
+    if (table == NULL) {
+        return -1;
+    }
+
+    if (table->first->task == NULL) {
+        return -1;
+    }
+
+    if (table->first->status == RUNNING) {
+        sf_job_pause(jobid, table->first->process);
+        if (kill(-table->first->process, SIGSTOP) != 0) {
+            printf("error: unable to pause job\n");
+            return -1;
+        }
+        sf_job_status_change(jobid, table->first->status, PAUSED);
+        table->first->status = PAUSED;
+        return 0;
+    }
+
+    return -1;
 }
 
 /**
- *
+ * resume a job that is paused
  */
 int job_resume(int jobid) {
-    // TO BE IMPLEMENTED
-    abort();
+    JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
+    if (table == NULL) {
+        return -1;
+    }
+
+    if (table->first->task == NULL) {
+        return -1;
+    }
+
+    if (table->first->status == PAUSED) {
+        sf_job_resume(jobid, table->first->process);
+        if (kill(-table->first->process, SIGCONT) != 0) {
+            printf("error: unable to resume job\n");
+            return -1;
+        }
+        sf_job_status_change(jobid, table->first->status, RUNNING);
+        table->first->status = RUNNING;
+        return 0;
+    }
+
+    return -1;
 }
 
 /**
  * return the specified jobs pid
  */
 int job_get_pgid(int jobid) {
-    // JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
-    // if (table == NULL) {
-    //     return -1;
-    // }
+    JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
+    if (table == NULL) {
+        return -1;
+    }
 
-    // int process = table->first->process;
-    // if (process == NULL) {
-    //     return -1;
-    // }
+    if (table->first->task == NULL) {
+        return -1;
+    }
 
-    // return process;
-    abort();
+    if (table->first->status == RUNNING || table->first->status == PAUSED || table->first->status == CANCELED) {
+        return table->first->process;
+    }
+
+    return -1;
 }
 
 /**
@@ -239,6 +350,14 @@ JOB_STATUS job_get_status(int jobid) {
     debug("attempting to get specific jobs table by it");
     JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
     if (table == NULL) {
+        return -1;
+    }
+
+    if (table->first == NULL) {
+        return -1;
+    }
+
+    if (table->first->task == NULL) {
         return -1;
     }
 
@@ -254,15 +373,39 @@ int job_get_result(int jobid) {
         return -1;
     }
 
+    if (table->first == NULL) {
+        return -1;
+    }
+
+    if (table->first->task == NULL) {
+        return -1;
+    }
+
     return table->first->exit_status;
 }
 
 /**
- * 
+ * a job was canceled by the user
  */
 int job_was_canceled(int jobid) {
-    // TO BE IMPLEMENTED
-    abort();
+    JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
+    if (table == NULL) {
+        return 0;
+    }
+
+    if (table->first == NULL) {
+        return 0;
+    }
+
+    if (table->first->task == NULL) {
+        return 0;
+    }
+
+    if (table->first->status == ABORTED) {
+        return 1;
+    }
+
+    return 0;
 }
 
 /**
@@ -272,6 +415,14 @@ int job_was_canceled(int jobid) {
 char *job_get_taskspec(int jobid) {
     JOBS_TABLE *table = spooler_get_specific_jobs_table(jobid);
     if (table == NULL) {
+        return NULL;
+    }
+
+    if (table->first == NULL) {
+        return NULL;
+    }
+
+    if (table->first->task == NULL) {
         return NULL;
     }
 

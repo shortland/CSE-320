@@ -18,7 +18,7 @@ int show_all_job_statuses(void) {
     }
 
     int job_id = table->first->job_id;
-    if ( print_job_status(job_id) != 0) {
+    if ( print_job_status(job_id) == -1) {
         error("error printing job statuses");
 
         return -1;
@@ -39,7 +39,7 @@ int show_all_job_statuses(void) {
             return 0;
         }
 
-        if ( print_job_status(table->first->job_id) != 0) {
+        if ( print_job_status(table->first->job_id) == -1) {
             error("error printing job statuses");
 
             return -1;
@@ -106,7 +106,7 @@ void change_running_to_completed(pid_t pid, int exit_status) {
     sf_job_status_change(job->job_id, job->status, COMPLETED);
     job->status = COMPLETED;
     job->exit_status = exit_status;
-    job->task = NULL; // TODO?
+    // job->task = NULL; // TODO?
     job->process = -1;
     debug("successfull changed job (%d) to completed.", job->job_id);
 
@@ -114,6 +114,29 @@ void change_running_to_completed(pid_t pid, int exit_status) {
     spooler_set_runners(spooler_get_runners() + 1);
 
     sf_job_end(job->job_id, pid, exit_status);
+
+    return;
+}
+
+void change_canceled_to_aborted(pid_t pid) {
+    debug("getting job from list registered with pid %d", pid);
+    JOB *job = spooler_get_job_by_pid(pid);
+
+    if (job == NULL) {
+        error("a job with that PID doesn't exist.");
+        return;
+    }
+
+    sf_job_status_change(job->job_id, job->status, ABORTED);
+    job->status = ABORTED;
+    // job->task = NULL; // TODO?
+    job->process = -1;
+    debug("successfull changed job (%d) to aborted.", job->job_id);
+
+    // update runners
+    spooler_set_runners(spooler_get_runners() + 1);
+
+    sf_job_end(job->job_id, pid, -1);
 
     return;
 }

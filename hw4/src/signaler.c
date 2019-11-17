@@ -38,7 +38,7 @@ int signaler_determine_signal_action(void) {
                 continue;
             }
 
-            if (job->status != RUNNING || job->process == -1) {
+            if ((job->status != RUNNING && job->status != CANCELED) || job->process == -1) {
                 continue;
             }
 
@@ -61,9 +61,11 @@ int signaler_determine_signal_action(void) {
                     change_running_to_completed(wpid, status);
                 } else {
                     error("unrecognized exit status - abnormal? %d", status);
+                    change_running_to_completed(wpid, status);
                 }
             }  else {
-                error("no exit status - abnormal? pid: (%d)", wpid);
+                error("no exit status - abnormal? (maybe canceled, so change to aborted) pid: (%d)", wpid);
+                change_canceled_to_aborted(wpid);
             }
         }
 

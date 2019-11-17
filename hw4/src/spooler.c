@@ -45,6 +45,10 @@ void spooler_increment_job_count(void) {
     jobs_table->total++;
 }
 
+void spooler_decrement_job_count(void) {
+    jobs_table->total--;
+}
+
 JOBS_TABLE *spooler_get_jobs_table(void) {
     return jobs_table;
 }
@@ -123,7 +127,7 @@ JOB *spooler_get_first_by_status(JOB_STATUS status) {
             return NULL;
         }
 
-        if (table->first->status == status) {
+        if (table->first->status == status && table->first->task != NULL) {
             debug("found job_id (%d) with that status", table->first->job_id);
 
             return table->first;
@@ -151,7 +155,7 @@ JOB *spooler_get_job_by_pid(pid_t pid) {
             return NULL;
         }
 
-        if (table->first->process == pid) {
+        if (table->first->process == pid && table->first->task != NULL) {
             debug("found job_id (%d) with that pid", table->first->job_id);
 
             return table->first;
@@ -179,7 +183,7 @@ JOB *spooler_get_job_by_job_id(uint32_t job_id) {
             return NULL;
         }
 
-        if (table->first->job_id == job_id) {
+        if (table->first->job_id == job_id && table->first->task != NULL) {
             debug("found job_id (%d) that matches", table->first->job_id);
 
             return table->first;
@@ -195,3 +199,21 @@ JOB *spooler_get_job_by_job_id(uint32_t job_id) {
     debug("unable to find any jobs with job_id [%d]", job_id);
     return NULL;
 }
+
+JOB *spooler_get_empty_job(JOBS_TABLE *table) {
+    if (table == NULL) {
+        return NULL;
+    }
+
+    if (table->first == NULL) {
+        return NULL;
+    }
+
+    if (table->first->task == NULL) {
+        return table->first;
+    } else {
+        return spooler_get_empty_job(table->rest);
+    }
+}
+
+

@@ -165,7 +165,7 @@ typedef struct brs_notify_info {   // For BOUGHT, SOLD, POSTED, CANCELED, TRADED
  *
  * @param fd  The file descriptor on which packet is to be sent.
  * @param pkt  The fixed-size packet header, with multi-byte fields
- *   in host byte order
+ *   in network byte order
  * @param data  The data payload, or NULL, if there is none.
  * @return  0 in case of successful transmission, -1 otherwise.
  *   In the latter case, errno is set to indicate the error.

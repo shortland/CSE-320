@@ -71,13 +71,9 @@ TRADER *trader_login(int fd, char *name);
  *
  * @param trader  The trader to be logged out.
  *
- * All outstanding orders for the specified trader are cancelled, and the calling
- * thread blocks until there are no orders for this trader left in the exchange.
- * Then the specified trader is removed from the traders map.
  * This function "consumes" one reference to the TRADER object by calling
- * trader_unref().  This will have the effect of causing the TRADER object
- * to be freed as soon as any references to it currently held by other threads
- * have been released.
+ * trader_unref().  However, the trader remains in the traders map, which
+ * still holds one reference, th so the trader is not freed.
  */
 void trader_logout(TRADER *trader);
 

@@ -59,8 +59,10 @@ void trader_fini(void);
  * If the login succeeds then a mapping is recorded from the specified avatar
  * to a TRADER object that is created for this client and returned as the
  * result of the call.  The returned TRADER object has a reference count equal
- * to one.  This reference should be "owned" by the thread that is servicing
+ * to two.  One reference should be "owned" by the thread that is servicing
  * this client, and it should not be released until the client has logged out.
+ * The other reference is owned by the traders map, and it is retained until
+ * server shutdown.
  */
 TRADER *trader_login(int fd, char *name);
 

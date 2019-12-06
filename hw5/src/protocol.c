@@ -86,8 +86,7 @@ int proto_send_packet(int fd, BRS_PACKET_HEADER *hdr, void *payload) {
     errno = 0;
 
     // write out the header
-    ssize_t wrote_bytes = 0;
-    wrote_bytes = write(fd, hdr, header_size());
+    ssize_t wrote_bytes = write(fd, hdr, header_size());
 
     // check for short write
     if (wrote_bytes != header_size()) {
@@ -136,8 +135,14 @@ int proto_recv_packet(int fd, BRS_PACKET_HEADER *hdr, void **payloadp) {
     errno = 0;
 
     // read out the header into supplied storage hdr
-    ssize_t read_bytes = 0;
-    read_bytes = read(fd, hdr, header_size());
+    ssize_t read_bytes = read(fd, hdr, header_size());
+
+    // check for EOF
+    if (read_bytes == 0) {
+        warn("reached EOF");
+
+        return -1;
+    }
 
     // after reading, convert from host to net
     // uint16_t tmp_type = htons(hdr->type);

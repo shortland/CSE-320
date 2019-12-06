@@ -47,7 +47,7 @@
  *                      min price
  *   CANCEL:   Attempt to cancel a pending order
  *             Payload: order id
- * 
+ *
  * Server-to-client responses (synchronous):
  *   ACK:      Sent in response to a successful request
  *             Payload (optional):
@@ -116,7 +116,7 @@ typedef uint32_t orderid_t;
  * network byte order.
  */
 typedef struct brs_packet_header {
-    uint8_t type;		   // Type of the packet
+    uint8_t type;		           // Type of the packet
     uint16_t size;                 // Payload size (zero if no payload)
     uint32_t timestamp_sec;        // Seconds field of time packet was sent
     uint32_t timestamp_nsec;       // Nanoseconds field of time packet was sent

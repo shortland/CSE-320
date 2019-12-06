@@ -163,6 +163,13 @@ void creg_wait_for_empty(CLIENT_REGISTRY *cr) {
 }
 
 void creg_shutdown_all(CLIENT_REGISTRY *cr) {
+    for (int i = 0; i < cr->client_count; ++i) {
+        if (close(cr->fds[i]) == -1) {
+            warn("unable to close file descriptor, might've already closed.");
+        }
+    }
+
+    cr->client_count = 0;
 
     return;
 }

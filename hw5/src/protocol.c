@@ -88,6 +88,11 @@ int proto_send_packet(int fd, BRS_PACKET_HEADER *hdr, void *payload) {
     // write out the header
     ssize_t wrote_bytes = write(fd, hdr, header_size());
 
+    // we aren't writing this anymore, so use host order
+    // debug("hdr->size is: %u", hdr->size);
+    // hdr->size = ntohs(hdr->size);
+    // debug("hdr->size is now: %u", hdr->size);
+
     // check for short write
     if (wrote_bytes != header_size()) {
         error("header short write (errno: %u), expected: %lu, actual: %lu", errno, header_size(), wrote_bytes);
@@ -96,20 +101,21 @@ int proto_send_packet(int fd, BRS_PACKET_HEADER *hdr, void *payload) {
     }
 
     // check if payload is correct size
+    // int *ptr_tmp = (int *)payload;
     if (payload != NULL) {
-        if (sizeof(*payload) != hdr->size) {
-            error("payload given, but isn't the expected size");
+        // if (sizeof(*ptr_tmp) != hdr->size) {
+        //     error("payload given, but isn't the expected size; expected: %u, actual: %lu", hdr->size, sizeof(*ptr_tmp));
 
-            return -1;
-        }
+        //     return -1;
+        // }
 
         // payload isn't null, so write out the payload
         errno = 0;
-        wrote_bytes = write(fd, payload, hdr->size);
+        wrote_bytes = write(fd, payload, ntohs(hdr->size));
 
         // check for a short write
-        if (wrote_bytes != hdr->size) {
-            error("payload short write (errno: %u), expected: %u, actual: %lu", errno, hdr->size, wrote_bytes);
+        if (wrote_bytes != ntohs(hdr->size)) {
+            error("payload short write (errno: %u), expected: %u, actual: %lu", errno, ntohs(hdr->size), wrote_bytes);
 
             return -1;
         }
